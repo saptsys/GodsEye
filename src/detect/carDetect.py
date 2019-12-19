@@ -4,12 +4,11 @@ class CarDetect():
     def __init__(self):
         print("car")
         cascadePath =  str(Path(__file__).parent.parent / 'cascades/car.xml')
-        print(cascadePath)
-        self.carCascade = cv2.CascadeClassifier("D:\opencv\cascade\car.xml")
+        self.carCascade = cv2.CascadeClassifier(cascadePath)
+
 
     def getCords(self,frame):
         frame = self.gray(frame)
-        print(self.carCascade.empty())
         coords = self.carCascade.detectMultiScale(frame,1.1,4)
         return coords
 
