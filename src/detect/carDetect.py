@@ -8,14 +8,10 @@ class CarDetect():
 
 
     def getCords(self,frame):
-        frame = self.gray(frame)
-        coords = self.carCascade.detectMultiScale(frame,1.1,4)
+        coords = self.carCascade.detectMultiScale(frame,1.1,9)
         return coords
 
     def drawCords(self,frame,coords):
         for x,y,h,w in coords:
-            cv2.rectangle(frame,(x,y,h,w),(255,255,0),2)
+            cv2.rectangle(frame,(x,y,h,w),(255,0,0),2)
         return frame
-    
-    def gray(self,frame):
-        return cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
