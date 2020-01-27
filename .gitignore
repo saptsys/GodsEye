@@ -112,3 +112,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+.vscode/settings.json
+*.jpg
+*.mp4
+*.jpeg
+*.avi
+*.webm
+*.png
