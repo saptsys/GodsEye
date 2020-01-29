@@ -10,7 +10,7 @@ class PlateDetect():
     def __init__(self):
         # tess.pytesseract.tesseract_cmd = "J:/Program Files/Tesseract-OCR/tesseract.exe"
         self.yolo = Yolo(confThreshold=0.5,nmsThreshold=0.4,inpWidth=416,inpHeight=416,detectType="plate")
-        self.yolo.ConfModel(coco="./data/yolo/plate/coco.names",cfg="./data/yolo/plate/yolo.cfg",weights="./data/yolo/plate/plate.weights")
+        self.yolo.ConfModel(coco="./data/yolo/plate/plate.names",cfg="./data/yolo/plate/plate.cfg",weights="./data/yolo/plate/plate.weights")
 
     def detect(self,img):
         cords = self.yolo.detect(img)

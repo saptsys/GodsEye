@@ -119,3 +119,4 @@ dmypy.json
 *.avi
 *.webm
 *.png
+*.weights

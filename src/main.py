@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 def main():
-    path = "./data/video/traffichd_Trim.mp4"
+    path = "./data/video/plate.mp4"
     # path = str(Path(__file__).parent.parent / "data/video/plate.mp4")
     app = App(path)
 

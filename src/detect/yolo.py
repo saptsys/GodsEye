@@ -47,6 +47,7 @@ class Yolo():
         # cv2.rectangle(frame, (left, top - round(1.5*labelSize[1])), (left + round(1.5*labelSize[0]), top + baseLine), (255, 255, 255), cv2.FILLED)
         # cv2.putText(frame, label, (left, top), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0,0,0), 1)
         # cv2.imshow("god",frame)
+        return [ left, top, right, bottom ]
         if(self.detectType == "vehicle"):
             return [ left+20, top+50, right-20, bottom+10 ]
         else:
