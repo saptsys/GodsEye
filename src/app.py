@@ -1,5 +1,6 @@
 import time
 from pathlib import Path
+import regionSelector
 
 import cv2
 import imutils
@@ -17,36 +18,24 @@ class App():
         self.carDetect = CarDetect()
         # self.bikeDetect = BikeDetect()
         self.camera = cv2.VideoCapture(camera)
-        self.run()
+        self.__regionSelector = regionSelector(self.camera.read()[1])
         self.winName = 'GodsEye'
         cv2.namedWindow(self.winName, cv2.WINDOW_NORMAL)
                 
     def run(self):
         fps = 0
-        resizeBy = 1
-        f = self.camera.read()[1]
-        if((f.shape[0] > 500) or (f.shape[1] > 500) ):
-            print("Resized")
-            resizeBy = 1
-        # cv2.namedWindow("parameters")
-    
-        # p1 = cv2.createTrackbar("p1","parameters",1,100,nothing)
-        # p2 = cv2.createTrackbar("p2","parameters",1,100,nothing)
-        # p3 = cv2.createTrackbar("p3","parameters",1,100,nothing)
 
         #run
+
         while 1:
             start_time = time.time()
             hasFrame,frame = self.camera.read()
             
-            gray = cv2.resize(frame,(int(frame.shape[1]/resizeBy),int(frame.shape[0]/resizeBy)))
-            # gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-
             carCords = self.carDetect.getCords(gray)
             # bikeCords = np.multiply(self.bikeDetect.getCords(gray), resizeBy)
         
             frame = self.carDetect.drawCords(frame,carCords)
-            self.carDetect.fetchPlateNumber(frame,carCords)
+            # self.carDetect.fetchPlateNumber(frame,carCords)
             # frame = self.bikeDetect.drawCords(frame,bikeCords)
 
             frame = cv2.putText(frame,str(str(fps)+" fps"),(10,30),cv2.FONT_ITALIC,0.5,(255,255,0),1)
