@@ -1,6 +1,6 @@
 import time
 from pathlib import Path
-import regionSelector
+from regionSelector import RegionSelector
 
 import cv2
 import imutils
@@ -18,7 +18,7 @@ class App():
         self.carDetect = CarDetect()
         # self.bikeDetect = BikeDetect()
         self.camera = cv2.VideoCapture(camera)
-        self.__regionSelector = regionSelector(self.camera.read()[1])
+        self.__regionSelector = RegionSelector(self.camera.read()[1])
         self.winName = 'GodsEye'
         cv2.namedWindow(self.winName, cv2.WINDOW_NORMAL)
                 
@@ -31,7 +31,7 @@ class App():
         while 1:
             start_time = time.time()
             hasFrame,frame = self.camera.read()
-            gray = cv2.resize(frame,(int(frame.shape[1]/resizeBy),int(frame.shape[0]/resizeBy)))
+            # gray = cv2.resize(frame,(int(frame.shape[1]/resizeBy),int(frame.shape[0]/resizeBy)))
             # gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
 
             # carCords = self.carDetect.getCords(gray)
