@@ -22,7 +22,7 @@ class RegionSelector():
         if not self.__isRegionSelected:
             self.__cord_x1 = 0
             self.__cord_x2 = self.__width
-        cv2.destroyAllWindows()
+        cv2.destroyWindow(self.__title)
 
     def __mouseCallBack(self,event,cord_x,cord_y,flags,parameters):
         local_frame = None
@@ -39,7 +39,7 @@ class RegionSelector():
         elif event == cv2.EVENT_LBUTTONUP:
             self.__isRegionSelected = True
         elif event == cv2.EVENT_LBUTTONDOWN and self.__isRegionSelected:
-            cv2.destroyAllWindows()
+            cv2.destroyWindow(self.__title)
         elif event == cv2.EVENT_RBUTTONUP:
             self.__isRegionSelected = False
 
