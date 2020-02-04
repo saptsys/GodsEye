@@ -1,8 +1,9 @@
 import cv2
 from pathlib import Path
 from detect.plateDetect import PlateDetect
+from detect.PlateOCR import PlateOCR
 from detect.yolo import Yolo
-
+import numpy as np
 class CarDetect():
     def __init__(self):
         print("car")
@@ -15,6 +16,7 @@ class CarDetect():
                 coco="./data/yolo/vehicle/vehicle.names",
                 cfg="./data/yolo/vehicle/vehicle.cfg",
                 weights="./data/yolo/vehicle/vehicle60000.weights")
+        self.ocr = PlateOCR()
 
 
     def getCords(self,frame):
@@ -28,38 +30,40 @@ class CarDetect():
         return cords
 
     def drawCords(self,frame,cords):
+        # print(np.shape(cords))
         for x,y,h,w in cords:
             cv2.rectangle(frame,(x,y),(h,w),(255,0,0),2)
         return frame
         
+    def drawPlateCords(self,frame,carCords,cords):
+        if(len(cords)!=0):
+            for x,y,h,w in cords[0]:
+                cv2.rectangle(frame,(x,y),(h,w),(255,0,0),2)
+        return frame
     
-    def fetchPlateNumber(self,frame,cords):
-        plateCords = self.plateDetect.detect(frame)
-        if(plateCords):
-            self.drawCords(frame,plateCords)
-            px,py,ph,pw = plateCords[0]
-            plate = frame[py:pw,px:ph]
-            cv2.imwrite("../detected/plate"+str(self.inc)+".jpg",plate)
-            cv2.imshow("plate",plate)
-            print("plate Detected!!")
-            self.inc += 1
-            return plate
+    def detectNumberPlate(self,roi,cords):
+        plateCords = self.plateDetect.detect(roi)
         # plateCords = []
         # for x,y,h,w in cords:
         #     car = frame[y:w,x:h]
-        #     plateCords = self.plateDetect.detect(frame)
-        #     if(plateCords):
-        #         self.drawCords(frame,plateCords)
-        #         px,py,ph,pw = plateCords[0]
+        #     plate = self.plateDetect.detect(car)
+
+        #     if(len(plate) != 0):
+        #         plateCords.append(plate)
+        #         # print(np.shape(plateCords))
+        #         # print(np.array(plateCords))
+        #         px,py,ph,pw = plate[0]
         #         plate = frame[py:pw,px:ph]
-        #         cv2.imwrite("../detected/plate"+str(self.inc)+".jpg",plate)
-        #         cv2.imshow("plate",plate)
+        #         cv2.imwrite("./data/detected/plate"+str(self.inc)+".jpg",plate)
+        #         # cv2.imshow("plate",plate)
         #         print("plate Detected!!")
         #         self.inc += 1
-        #         return plate
-        # return plateCords
-
-
-    
-
+        return plateCords
     # def cleanImage
+
+    def plateOCR(self,frame,plates):
+        for x,y,h,w in plates:
+            plate = frame[y:w,x:h]
+            self.ocr.detect(plate)
+            # cv2.imshow("Plate",plate)
+        pass

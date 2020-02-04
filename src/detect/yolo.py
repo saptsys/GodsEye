@@ -40,18 +40,19 @@ class Yolo():
         # if self.classes:
         #     label = '%s:%s' % (self.classes[classId], label)
         #     assert(classId < len(self.classes))
-
+        classes = self.classes[classId]
+        print(self.classes[classId])
         #Display the label at the top of the bounding box
         # labelSize, baseLine = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
         # top = max(top, labelSize[1])
         # cv2.rectangle(frame, (left, top - round(1.5*labelSize[1])), (left + round(1.5*labelSize[0]), top + baseLine), (255, 255, 255), cv2.FILLED)
         # cv2.putText(frame, label, (left, top), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0,0,0), 1)
         # cv2.imshow("god",frame)
-        return [ left, top, right, bottom ]
         if(self.detectType == "vehicle"):
-            return [ left+20, top+50, right-20, bottom+10 ]
+            return [ left, top, right, bottom ],classes
+        # else if(self.detectType)
         else:
-            return [ left, top, right, bottom ]
+            return [ left, top, right, bottom ],classes
         
     # Remove the bounding boxes with low confidence using non-maxima suppression
     def postprocess(self,frame, outs):
@@ -86,6 +87,7 @@ class Yolo():
         # Perform non maximum suppression to eliminate redundant overlapping boxes with
         # lower confidences.
         indices = cv2.dnn.NMSBoxes(boxes, confidences, self.confThreshold, self.nmsThreshold)
+        preds = ""
         for i in indices:
             i = i[0]
             box = boxes[i]
@@ -93,9 +95,10 @@ class Yolo():
             top = box[1]
             width = box[2]
             height = box[3]
-            cord = self.drawPred(frame,classIds[i], confidences[i], left, top, left + width, top + height)
+            cord,pred = self.drawPred(frame,classIds[i], confidences[i], left, top, left + width, top + height)
             cords.append(cord)
-        return cords
+            preds = preds + pred
+        return cords,preds
     
     def detect(self,frame):
         # Create a 4D blob from a frame.
@@ -108,8 +111,8 @@ class Yolo():
         outs = self.net.forward(self.getOutputsNames(self.net))
 
         # Remove the bounding boxes with low confidence
-        cords = self.postprocess(frame, outs)
-
+        cords,preds = self.postprocess(frame, outs)
+        print(preds)
         # Put efficiency information. The function getPerfProfile returns the overall time for inference(t) and the timings for each of the layers(in layersTimes)
         # t, _ = self.net.getPerfProfile()
         # label = 'Inference time: %.2f ms' % (t * 1000.0 / cv.getTickFrequency())
