@@ -6,7 +6,6 @@ from detect.yolo import Yolo
 import numpy as np
 class CarDetect():
     def __init__(self):
-        print("car")
         # cascadePath =  str(Path(__file__).parent.parent / 'cascades/car.xml')
         # self.carCascade = cv2.CascadeClassifier(cascadePath)
         self.plateDetect = PlateDetect()
@@ -26,7 +25,8 @@ class CarDetect():
 
         # p = float(str(p1)+'.'+str(p2))
         # cords = self.carCascade.detectMultiScale(frame,5.1,2)
-        cords = self.yolo.detect(frame)
+        cords,pred = self.yolo.detect(frame)
+        # print(pred)
         return cords
 
     def drawCords(self,frame,cords):
@@ -42,7 +42,7 @@ class CarDetect():
         return frame
     
     def detectNumberPlate(self,roi,cords):
-        plateCords = self.plateDetect.detect(roi)
+        plateCords,pred = self.plateDetect.detect(roi)
         # plateCords = []
         # for x,y,h,w in cords:
         #     car = frame[y:w,x:h]
@@ -58,12 +58,16 @@ class CarDetect():
         #         # cv2.imshow("plate",plate)
         #         print("plate Detected!!")
         #         self.inc += 1
+        # px,py,ph,pw = plateCords[0]
+        # plate = roi[py:pw,px:ph]
         return plateCords
     # def cleanImage
 
     def plateOCR(self,frame,plates):
         for x,y,h,w in plates:
             plate = frame[y:w,x:h]
-            self.ocr.detect(plate)
-            # cv2.imshow("Plate",plate)
+            cv2.imshow("plate",plate)
+            cords,pred,status = self.ocr.detect(plate)
+            if(status):
+                print(pred)
         pass

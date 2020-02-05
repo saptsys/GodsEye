@@ -7,66 +7,85 @@ from detect.yolo import Yolo
 
 class PlateOCR():
     def __init__(self):
-        self.yolo = Yolo(confThreshold=0.5,nmsThreshold=0.4,inpWidth=416,inpHeight=416,detectType="ocr")
+        self.yolo = Yolo(confThreshold=0.5,nmsThreshold=0.4,inpWidth=200,inpHeight=200,detectType="ocr")
         self.yolo.ConfModel(coco="./data/yolo/ocr/ocr.names",cfg="./data/yolo/ocr/ocr.cfg",weights="./data/yolo/ocr/ocr.weights")
 
     def detect(self,img):
-        cords = self.yolo.detect(img)
-        return cords
-        # #img = cv2.imread("testData/Final.JPG")
-        # threshold_img = self.preprocess(img)
-        # contours= self.extract_contours(threshold_img)
+        status,img = self.preprocess(img)
+        if(status):
+            cords,label = self.yolo.detect(img)
+            return cords,label,True
+        else:
+            return [],[],False
 
-        # #if len(contours)!=0:
-        #     #print len(contours) #Test
-        #     # cv2.drawContours(img, contours, -1, (0,255,0), 1)
-        #     # cv2.imshow("Contours",img)
-        #     # cv2.waitKey(0)
-        # self.cleanAndRead(img,contours)
-        # cv2.waitKey(0)
+    def preprocess(self,img):
+        return False,img
 
-    # def ratioCheck(area, width, height):
+    def scale_frame(self,frame,scale_percent):
+        _,frame = cv2.threshold(self.gray(frame),0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+        width = int(frame.shape[1] * scale_percent / 100)
+        height = int(frame.shape[0] * scale_percent / 100)
+        dim = (width, height)
+        # resize image
+        result = cv2.resize(frame, dim, interpolation = cv2.INTER_LINEAR) 
 
-    #     ratio = float(width) / float(height)
-    #     if ratio < 1:
-    #         ratio = 1 / ratio
+        return cv2.merge((result,result,result))
 
-    #     aspect = 4.7272
-    #     min = 15*aspect*15  # minimum area
-    #     max = 125*aspect*125  # maximum area
+    def gray(self,frame):
+        return cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
 
-    #     rmin = 3
-    #     rmax = 6
+    def preProcess(self,plateCords):
+        if plateCords is not None:
+            plate = self.scale_frame(plateCords,500)
+            contours,_ = cv2.findContours(plate,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+            img = cv2.drawContours(np.zeros((plate.shape[0],plate.shape[1],3)), contours, -1, (0,0,255), 1)
+            for ctr in contours:
+                x,y,w,h = cv2.boundingRect(ctr)
+                if w<h:
+                    img = cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),2)
+            cv2.imshow('plate',plate)
+        pass
+        
+    def ratioCheck(self,area, width, height):
 
-    #     if (area < min or area > max) or (ratio < rmin or ratio > rmax):
-    #         return False
-    #     return True
+        ratio = float(width) / float(height)
+        if ratio < 1:
+            ratio = 1 / ratio
 
-    # def isMaxWhite(plate):
-    #     avg = np.mean(plate)
-    #     if(avg>=115):
-    #         return True
-    #     else:
-    #         return False
+        aspect = 4.7272
+        min = 15*aspect*15  # minimum area
+        max = 125*aspect*125  # maximum area
 
-    # def validateRotationAndRatio(rect):
-    #     if(1==1):
-    #             return True
-    #     (x, y), (width, height), rect_angle = rect
+        rmin = 3
+        rmax = 6
 
-    #     if(width>height):
-    #         angle = -rect_angle
-    #     else:
-    #         angle = 90 + rect_angle
+        if (area < min or area > max) or (ratio < rmin or ratio > rmax):
+            return False
+        return True
 
-    #     if angle>15:
-    #         return False
+    def isMaxWhite(self,plate):
+        avg = np.mean(plate)
+        if(avg>=115):
+            return True
+        else:
+            return False
 
-    #     if height == 0 or width == 0:
-    #         return False
+    def validateRotationAndRatio(self,rect):
+        (x, y), (width, height), rect_angle = rect
 
-    #     area = height*width
-    #     if not ratioCheck(area,width,height):
-    #         return False
-    #     else:
-    #         return True
+        if(width>height):
+            angle = -rect_angle
+        else:
+            angle = 90 + rect_angle
+
+        if angle>15:
+            return False
+
+        if height == 0 or width == 0:
+            return False
+
+        area = height*width
+        if not ratioCheck(area,width,height):
+            return False
+        else:
+            return True

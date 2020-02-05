@@ -41,7 +41,6 @@ class Yolo():
         #     label = '%s:%s' % (self.classes[classId], label)
         #     assert(classId < len(self.classes))
         classes = self.classes[classId]
-        print(self.classes[classId])
         #Display the label at the top of the bounding box
         # labelSize, baseLine = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
         # top = max(top, labelSize[1])
@@ -49,10 +48,11 @@ class Yolo():
         # cv2.putText(frame, label, (left, top), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0,0,0), 1)
         # cv2.imshow("god",frame)
         if(self.detectType == "vehicle"):
-            return [ left, top, right, bottom ],classes
-        # else if(self.detectType)
+            return [ left, top, right, bottom ] , classes
+        elif(self.detectType == "ocr"):
+            return [ left-10, top-10, right+10, bottom+10 ] , classes
         else:
-            return [ left, top, right, bottom ],classes
+            return [ left, top, right, bottom ] , classes
         
     # Remove the bounding boxes with low confidence using non-maxima suppression
     def postprocess(self,frame, outs):
@@ -98,6 +98,7 @@ class Yolo():
             cord,pred = self.drawPred(frame,classIds[i], confidences[i], left, top, left + width, top + height)
             cords.append(cord)
             preds = preds + pred
+        # print(preds)
         return cords,preds
     
     def detect(self,frame):
@@ -111,10 +112,9 @@ class Yolo():
         outs = self.net.forward(self.getOutputsNames(self.net))
 
         # Remove the bounding boxes with low confidence
-        cords,preds = self.postprocess(frame, outs)
-        print(preds)
+        cords,pred = self.postprocess(frame, outs)
         # Put efficiency information. The function getPerfProfile returns the overall time for inference(t) and the timings for each of the layers(in layersTimes)
         # t, _ = self.net.getPerfProfile()
         # label = 'Inference time: %.2f ms' % (t * 1000.0 / cv.getTickFrequency())
         # cv.putText(frame, label, (0, 15), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255))
-        return cords
+        return cords,pred
