@@ -15,7 +15,7 @@ class PlateOCR():
         if(status):
             cords,label = self.yolo.detect(img)
             if(len(cords) == 10):
-                cv2.imshow("plate",img)
+                # cv2.imshow("plate",img)
                 # print(cords)
                 # print(np.array(cords))
                 labelOrder = np.argsort(np.array(cords)[:,0])
@@ -35,6 +35,10 @@ class PlateOCR():
 
     def preprocess(self,img):
         img = self.scale_frame(img,500)
+        cv2.imshow('pre-process orignal',img)
+        kernel = np.ones((3,3),np.uint8)
+        img = cv2.dilate(img,kernel)
+        cv2.imshow('pre-process dilate',img)
         return True,img
 
     def scale_frame(self,frame,scale_percent):
