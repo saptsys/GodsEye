@@ -42,7 +42,7 @@ class CarDetect():
         return frame
     
     def detectNumberPlate(self,roi,cords):
-        plateCords,pred = self.plateDetect.detect(roi)
+        plateCords,pred,conf = self.plateDetect.detect(roi)
         # plateCords = []
         # for x,y,h,w in cords:
         #     car = frame[y:w,x:h]
