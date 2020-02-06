@@ -1,13 +1,16 @@
 
 import cv2
 import numpy as np
-
 from detect.yolo import Yolo
+import re
 
 
 class PlateOCR():
     def __init__(self):
-        self.yolo = Yolo(confThreshold=0.5,nmsThreshold=0.4,inpWidth=200,inpHeight=200,detectType="ocr")
+        self.plate_regex = re.compile(r'^[A-Z]{2}[0-9]{1,2}(?:[A-Z])?(?:[A-Z]*)?[0-9]{4}$')
+        self.all_states = ['AP', 'AR', 'AS', 'BR', 'CG', 'GA', 'GJ', 'HR', 'HP', 'JK', 'JH', 'KA', 'KL', 'MP', 'MH', 'MN', 'ML', 'MZ', 'NL', 'OR', 'PB', 'RJ', 'SK', 'TN', 'TR', 'UK', 'UP', 'WB', 'TS', 'AN', 'CH', 'DH', 'DD', 'DL', 'LD', 'PY']
+
+        self.yolo = Yolo(confThreshold=0.6,nmsThreshold=0.4,inpWidth=200,inpHeight=200,detectType="ocr")
         self.yolo.ConfModel(coco="./data/yolo/ocr/ocr.names",cfg="./data/yolo/ocr/ocr.cfg",weights="./data/yolo/ocr/ocr.weights")
 
     def detect(self,img):
@@ -24,7 +27,7 @@ class PlateOCR():
                 for i,at in enumerate(labelOrder):
     	            tempLabel[i] = label[at]
                 label = ''.join(map(str,tempLabel))
-                print(label)
+                print(str(self.isValid(label))+"  "+label+"  accuracy: "+ str(sum(conf)/10))
                 cv2.waitKey()
                 return cords,label,True
             else:
@@ -33,9 +36,12 @@ class PlateOCR():
         else:
             return [],[],False
 
+    def isValid(self,label):
+        return True if self.all_states.__contains__(label[:2]) and self.plate_regex.match(label) else False
+
     def preprocess(self,img):
+        cv2.imshow('pre-process',img)
         img = self.scale_frame(img,500)
-        cv2.imshow('pre-process orignal',img)
         kernel = np.ones((3,3),np.uint8)
         img = cv2.dilate(img,kernel)
         cv2.imshow('pre-process dilate',img)
@@ -54,17 +60,17 @@ class PlateOCR():
     def gray(self,frame):
         return cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
 
-    def preProcess(self,plateCords):
-        if plateCords is not None:
-            plate = self.scale_frame(plateCords,500)
-            contours,_ = cv2.findContours(plate,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-            img = cv2.drawContours(np.zeros((plate.shape[0],plate.shape[1],3)), contours, -1, (0,0,255), 1)
-            for ctr in contours:
-                x,y,w,h = cv2.boundingRect(ctr)
-                if w<h:
-                    img = cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),2)
-            cv2.imshow('plate',plate)
-        pass
+    # def preProcess(self,plateCords):
+    #     if plateCords is not None:
+    #         plate = self.scale_frame(plateCords,500)
+    #         contours,_ = cv2.findContours(plate,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+    #         img = cv2.drawContours(np.zeros((plate.shape[0],plate.shape[1],3)), contours, -1, (0,0,255), 1)
+    #         for ctr in contours:
+    #             x,y,w,h = cv2.boundingRect(ctr)
+    #             if w<h:
+    #                 img = cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),2)
+    #         cv2.imshow('plate',plate)
+    #     pass
         
     def ratioCheck(self,area, width, height):
 

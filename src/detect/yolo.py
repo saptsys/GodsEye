@@ -48,11 +48,11 @@ class Yolo():
         # cv2.putText(frame, label, (left, top), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0,0,0), 1)
         # cv2.imshow("god",frame)
         if(self.detectType == "vehicle"):
-            return [ left, top, right, bottom ] , classes,conf
+            return [ left, top, right, bottom ] , classes
         elif(self.detectType == "plate"):
-            return [ left-10, top-10, right+10, bottom+10 ] , classes ,conf
+            return [ left-10, top-10, right+10, bottom+10 ] , classes
         elif(self.detectType == "ocr"):
-            return [ left, top, right, bottom ] , classes, conf
+            return [ left, top, right, bottom ] , classes
         else:
             return [ left, top, right, bottom ] , classes
         
@@ -98,10 +98,10 @@ class Yolo():
             top = box[1]
             width = box[2]
             height = box[3]
-            cord,pred,conf = self.drawPred(frame,classIds[i], confidences[i], left, top, left + width, top + height)
+            cord,pred = self.drawPred(frame,classIds[i], confidences[i], left, top, left + width, top + height)
             cords.append(cord)
             preds = preds + pred
-            confs = confs = conf
+            confs.append(confidences[i])
         # print(preds)
         return cords,preds,confs
     
