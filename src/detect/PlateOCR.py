@@ -13,7 +13,7 @@ class PlateOCR():
     def detect(self,img):
         status,img = self.preprocess(img)
         if(status):
-            cords,label = self.yolo.detect(img)
+            cords,label,conf = self.yolo.detect(img)
             if(len(cords) == 10):
                 cv2.imshow("plate",img)
                 # print(cords)

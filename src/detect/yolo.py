@@ -48,9 +48,11 @@ class Yolo():
         # cv2.putText(frame, label, (left, top), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0,0,0), 1)
         # cv2.imshow("god",frame)
         if(self.detectType == "vehicle"):
-            return [ left, top, right, bottom ] , classes
+            return [ left, top, right, bottom ] , classes,conf
         elif(self.detectType == "plate"):
-            return [ left-10, top-10, right+10, bottom+10 ] , classes
+            return [ left-10, top-10, right+10, bottom+10 ] , classes ,conf
+        elif(self.detectType == "ocr"):
+            return [ left, top, right, bottom ] , classes, conf
         else:
             return [ left, top, right, bottom ] , classes
         
@@ -88,6 +90,7 @@ class Yolo():
         # lower confidences.
         indices = cv2.dnn.NMSBoxes(boxes, confidences, self.confThreshold, self.nmsThreshold)
         preds = ""
+        confs = []
         for i in indices:
             i = i[0]
             box = boxes[i]
@@ -95,11 +98,12 @@ class Yolo():
             top = box[1]
             width = box[2]
             height = box[3]
-            cord,pred = self.drawPred(frame,classIds[i], confidences[i], left, top, left + width, top + height)
+            cord,pred,conf = self.drawPred(frame,classIds[i], confidences[i], left, top, left + width, top + height)
             cords.append(cord)
             preds = preds + pred
+            confs = confs = conf
         # print(preds)
-        return cords,preds
+        return cords,preds,confs
     
     def detect(self,frame):
         # Create a 4D blob from a frame.
@@ -112,9 +116,9 @@ class Yolo():
         outs = self.net.forward(self.getOutputsNames(self.net))
 
         # Remove the bounding boxes with low confidence
-        cords,pred = self.postprocess(frame, outs)
+        cords,pred,conf = self.postprocess(frame, outs)
         # Put efficiency information. The function getPerfProfile returns the overall time for inference(t) and the timings for each of the layers(in layersTimes)
         # t, _ = self.net.getPerfProfile()
         # label = 'Inference time: %.2f ms' % (t * 1000.0 / cv.getTickFrequency())
         # cv.putText(frame, label, (0, 15), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255))
-        return cords,pred
+        return cords,pred,conf
