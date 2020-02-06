@@ -31,8 +31,8 @@ class App():
             orignal_frame = frame.copy()
             roi = self.__regionSelector.getROI(frame)
 
-            carCords = self.carDetect.getCords(roi)
-            frame = self.carDetect.drawCords(roi,carCords)
+            # carCords = self.carDetect.getCords(roi)
+            # frame = self.carDetect.drawCords(roi,carCords)
 
             plateCords = self.carDetect.detectNumberPlate(roi,frame)
             

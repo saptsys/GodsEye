@@ -14,12 +14,28 @@ class PlateOCR():
         status,img = self.preprocess(img)
         if(status):
             cords,label = self.yolo.detect(img)
-            return cords,label,True
+            if(len(cords) == 10):
+                cv2.imshow("plate",img)
+                # print(cords)
+                # print(np.array(cords))
+                labelOrder = np.argsort(np.array(cords)[:,0])
+                label = list(label)
+                tempLabel = [None]*10
+                for i,at in enumerate(labelOrder):
+    	            tempLabel[i] = label[at]
+                label = ''.join(map(str,tempLabel))
+                print(label)
+                cv2.waitKey()
+                return cords,label,True
+            else:
+                return [],[],False
+
         else:
             return [],[],False
 
     def preprocess(self,img):
-        return False,img
+        img = self.scale_frame(img,500)
+        return True,img
 
     def scale_frame(self,frame,scale_percent):
         _,frame = cv2.threshold(self.gray(frame),0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)

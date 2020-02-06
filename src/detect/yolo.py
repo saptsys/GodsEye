@@ -49,7 +49,7 @@ class Yolo():
         # cv2.imshow("god",frame)
         if(self.detectType == "vehicle"):
             return [ left, top, right, bottom ] , classes
-        elif(self.detectType == "ocr"):
+        elif(self.detectType == "plate"):
             return [ left-10, top-10, right+10, bottom+10 ] , classes
         else:
             return [ left, top, right, bottom ] , classes

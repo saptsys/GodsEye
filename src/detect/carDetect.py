@@ -66,8 +66,8 @@ class CarDetect():
     def plateOCR(self,frame,plates):
         for x,y,h,w in plates:
             plate = frame[y:w,x:h]
-            cv2.imshow("plate",plate)
             cords,pred,status = self.ocr.detect(plate)
             if(status):
-                print(pred)
+                # print(pred)
+                pass
         pass
