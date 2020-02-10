@@ -45,7 +45,7 @@ class App():
             # Stop the program if reached end of video
             if not hasFrame:
                 print("Done processing !!!")
-                cv.waitKey(3000)
+                cv2.waitKey(3000)
                 break
 
             fps = int(1.0 / (time.time() - start_time))
