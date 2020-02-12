@@ -10,19 +10,20 @@ class PlateOCR():
         self.plate_regex = re.compile(r'^[A-Z]{2}[0-9]{1,2}(?:[A-Z])?(?:[A-Z]*)?[0-9]{4}$')
         self.all_states = ['AP', 'AR', 'AS', 'BR', 'CG', 'GA', 'GJ', 'HR', 'HP', 'JK', 'JH', 'KA', 'KL', 'MP', 'MH', 'MN', 'ML', 'MZ', 'NL', 'OR', 'PB', 'RJ', 'SK', 'TN', 'TR', 'UK', 'UP', 'WB', 'TS', 'AN', 'CH', 'DH', 'DD', 'DL', 'LD', 'PY']
         self.inc = 0
-        self.yolo = Yolo(confThreshold=0.6,nmsThreshold=0.4,inpWidth=200,inpHeight=200,detectType="ocr")
+        self.yolo = Yolo(confThreshold=0.75,nmsThreshold=0.8,inpWidth=200,inpHeight=200,detectType="ocr")
         self.yolo.ConfModel(coco="./data/yolo/ocr/ocr.names",cfg="./data/yolo/ocr/ocr.cfg",weights="./data/yolo/ocr/ocr.weights")
 
     def detect(self,img):
         status,img = self.preprocess(img)
         if(status):
+
             self.inc += 1
             cords,label,conf = self.yolo.detect(img)
             if(len(cords) == 10):
                 # cv2.imshow("plate",img)
                 # print(cords)
                 # print(np.array(cords))
-                cv2.imwrite("./data/img/detected/ok"+str(self.inc)+".jpg",img)
+                # cv2.imwrite("./data/img/detected/ok"+str(self.inc)+".jpg",img)
                 labelOrder = np.argsort(np.array(cords)[:,0])
                 label = list(label)
                 tempLabel = [None]*10
@@ -33,7 +34,8 @@ class PlateOCR():
                 # cv2.waitKey()
                 return cords,label,True
             else:
-                cv2.imwrite("./data/img/detected/"+str(self.inc)+".jpg",img)
+                # print("<10")
+                # cv2.imwrite("./data/img/detected/"+str(self.inc)+".jpg",img)
                 return [],[],False
 
         else:
@@ -45,19 +47,57 @@ class PlateOCR():
     def preprocess(self,img):
         cv2.imshow('pre-process',img)
         if(self.ratioCheck(img)):
+            img = self.gray(img)
             img = self.scale_frame(img,500)
-            # img = self.bright(img)
+            img = self.bright(img)
             kernel = np.ones((3,3),np.uint8)
             img = cv2.dilate(img,kernel,iterations=1)
-            cv2.imshow('post-proces',img)
 
+            cv2.imshow("noisy",img)  
+            
+            img = self.removeNoise(img,thickness=5,rangePercentage=0.2,medianThreshold=255)
+            cv2.imshow('post-proces',img)
             return True,img
         else:
             print("Ratio not matched")
             return False,img
 
+    def removeNoise(self,img,thickness=5,rangePercentage=0.2,medianThreshold=255):
+        img = self.gray(img)
+        Iterator = 0
+        top_end = int((img.shape[0] * rangePercentage))
+        bottom_start = int( (img.shape[0] * ( -(rangePercentage-1)) ) )
+        # print(top_end)
+        # print(bottom_start)
+        # print(img.shape)
+        for i,position in enumerate([top_end,bottom_start]):
+            imgc = img.copy()
+            if(i == 0):
+                imgc = imgc[0:position,:]
+            else:
+                imgc = imgc[position:imgc.shape[0],:]
+            # print(imgc.shape)
+            # assert(False)
+            rows = imgc.shape[0]
+            while True:
+                if(Iterator >= rows):
+                    break
+                median = imgc[Iterator:Iterator+thickness,:].mean()
+                if(median <= medianThreshold):
+                    # print(median)
+                    if(i == 0):
+                        img[Iterator:Iterator+thickness,:] = 255
+                    else:
+                        img[Iterator+position:Iterator+position+thickness] = 255
+                        # print(Iterator+position,Iterator+position+thickness)
+                # print(imgcc.shape)
+                # cv2.imshow("noisy",imgcc)
+                # cv2.waitKey()
+                Iterator += thickness
+            Iterator = 0    
+        return self.gray(img,True)
+
     def scale_frame(self,frame,scale_percent):
-        frame = self.gray(frame)
         _,frame = cv2.threshold(frame,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
         frame = cv2.adaptiveThreshold(frame,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,7,2)
 
@@ -65,18 +105,21 @@ class PlateOCR():
         height = int(frame.shape[0] * scale_percent / 100)
         dim = (width, height)
         # resize image
-        result = cv2.resize(frame, dim, interpolation = cv2.INTER_LINEAR) 
-        return cv2.merge((result,result,result))
+        img = cv2.resize(frame, dim, interpolation = cv2.INTER_LINEAR) 
+        return self.gray(img,True)
 
-    def gray(self,frame):
-        return cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+    def gray(self,frame,reverse=False):
+        if(reverse):
+            return cv2.merge((frame,frame,frame))
+        else:
+            return cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
 
     def bright(self,img):
-        img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-        img =cv2.equalizeHist(img)
+        img = self.gray(img)
+        img = cv2.equalizeHist(img)
         img = cv2.medianBlur(img,7)
-        cv2.imshow("bright",img)
-        return cv2.merge((img,img,img))
+        # cv2.imshow("bright",img)
+        return self.gray(img,True)
         
     def ratioCheck(self,img):
         height, width,_ = img.shape
