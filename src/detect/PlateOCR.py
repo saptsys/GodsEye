@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 from detect.yolo import Yolo
 import re
-
+import math
 
 class PlateOCR():
     def __init__(self):
@@ -53,7 +53,6 @@ class PlateOCR():
             kernel = np.ones((3,3),np.uint8)
             img = cv2.dilate(img,kernel,iterations=1)
             # gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-
             edges = cv2.Canny(img,50,150,apertureSize = 3)
             lines = cv2.HoughLines(edges,1,np.pi/180,200)
             if(lines is not None):
@@ -67,21 +66,24 @@ class PlateOCR():
                     x2 = int(x0 - 1000*(-b))
                     y2 = int(y0 - 1000*(a))
 
-                    print("a {0},b {1},x0 {2},y0 {3}".format(str(a),str(b),str(x0),str(y0)))
+                    # print("a {0},b {1},x0 {2},y0 {3}".format(str(a),str(b),str(x0),str(y0)))
+                    angle = math.degrees(math.atan2(y2 - y1, x2 - x1))
+                    print("Angle > "+str(angle)," Theta > "+str(theta))
 
+                    
                     rows,cols = img.shape[:2]
                     cv2.line(img,(x1,y1),(x2,y2),(0,0,255),2)
                     cv2.imshow('before-rotated',img)
-                    M = cv2.getRotationMatrix2D((cols/2,rows/2),90,1)
+                    M = cv2.getRotationMatrix2D((cols/2,rows/2),angle,1)
                     img = cv2.warpAffine(img,M,(cols,rows))
                     #y = mx+b
-                    print("slop: "+str((y2-y1)/(x2-x1))+"  theta:"+str(theta))
+                    # print("slop: "+str((y2-y1)/(x2-x1))+"  theta:"+str(theta))
                     cv2.imshow('rotated',img)
 
-            cv2.imshow("noisy",img)  
+            # cv2.imshow("noisy",img)  
             
             img = self.removeNoise(img,thickness=5,rangePercentage=0.2,medianThreshold=255)
-            cv2.imshow('post-proces',img)
+            # cv2.imshow('post-proces',img)
             return True,img
         else:
             print("Ratio not matched")
