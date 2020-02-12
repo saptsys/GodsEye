@@ -70,12 +70,9 @@ class PlateOCR():
         # print(top_end)
         # print(bottom_start)
         # print(img.shape)
-        for i,position in enumerate([top_end,bottom_start]):
+        for i,position in enumerate([[0,top_end],[bottom_start,img.shape[0]]]):
             imgc = img.copy()
-            if(i == 0):
-                imgc = imgc[0:position,:]
-            else:
-                imgc = imgc[position:imgc.shape[0],:]
+            imgc = imgc[position[0]:position[1],:]
             # print(imgc.shape)
             # assert(False)
             rows = imgc.shape[0]
@@ -85,10 +82,7 @@ class PlateOCR():
                 median = imgc[Iterator:Iterator+thickness,:].mean()
                 if(median <= medianThreshold):
                     # print(median)
-                    if(i == 0):
-                        img[Iterator:Iterator+thickness,:] = 255
-                    else:
-                        img[Iterator+position:Iterator+position+thickness] = 255
+                    img[Iterator+position[0]:Iterator+thickness+position[0],:] = 255
                         # print(Iterator+position,Iterator+position+thickness)
                 # print(imgcc.shape)
                 # cv2.imshow("noisy",imgcc)
