@@ -52,7 +52,6 @@ class PlateOCR():
             img = self.bright(img)
             kernel = np.ones((3,3),np.uint8)
             img = cv2.dilate(img,kernel,iterations=1)
-<<<<<<< HEAD
             # gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 
             edges = cv2.Canny(img,50,150,apertureSize = 3)
@@ -78,8 +77,6 @@ class PlateOCR():
                     #y = mx+b
                     print("slop: "+str((y2-y1)/(x2-x1))+"  theta:"+str(theta))
                     cv2.imshow('rotated',img)
-=======
->>>>>>> 8304d652ef4db580a0014e46791656669243ad0c
 
             cv2.imshow("noisy",img)  
             
@@ -141,11 +138,7 @@ class PlateOCR():
         img = cv2.equalizeHist(img)
         img = cv2.medianBlur(img,7)
         # cv2.imshow("bright",img)
-<<<<<<< HEAD
-        return cv2.merge((img,img,img))
-=======
         return self.gray(img,True)
->>>>>>> 8304d652ef4db580a0014e46791656669243ad0c
         
     def ratioCheck(self,img):
         height, width,_ = img.shape
