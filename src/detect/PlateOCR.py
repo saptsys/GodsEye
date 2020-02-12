@@ -42,14 +42,38 @@ class PlateOCR():
     def isValid(self,label):
         return True if self.all_states.__contains__(label[:2]) and self.plate_regex.match(label) else False
 
+
     def preprocess(self,img):
-        cv2.imshow('pre-process',img)
         if(self.ratioCheck(img)):
             img = self.scale_frame(img,500)
-            # img = self.bright(img)
+            img = self.bright(img)
             kernel = np.ones((3,3),np.uint8)
             img = cv2.dilate(img,kernel,iterations=1)
-            cv2.imshow('post-proces',img)
+            # gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+
+            edges = cv2.Canny(img,50,150,apertureSize = 3)
+            lines = cv2.HoughLines(edges,1,np.pi/180,200)
+            if(lines is not None):
+                for rho,theta in lines[0]:
+                    a = np.cos(theta)
+                    b = np.sin(theta)
+                    x0 = a*rho
+                    y0 = b*rho
+                    x1 = int(x0 + 1000*(-b))
+                    y1 = int(y0 + 1000*(a))
+                    x2 = int(x0 - 1000*(-b))
+                    y2 = int(y0 - 1000*(a))
+
+                    print("a {0},b {1},x0 {2},y0 {3}".format(str(a),str(b),str(x0),str(y0)))
+
+                    rows,cols = img.shape[:2]
+                    cv2.line(img,(x1,y1),(x2,y2),(0,0,255),2)
+                    cv2.imshow('before-rotated',img)
+                    M = cv2.getRotationMatrix2D((cols/2,rows/2),90,1)
+                    img = cv2.warpAffine(img,M,(cols,rows))
+                    #y = mx+b
+                    print("slop: "+str((y2-y1)/(x2-x1))+"  theta:"+str(theta))
+                    cv2.imshow('rotated',img)
 
             return True,img
         else:
@@ -75,7 +99,7 @@ class PlateOCR():
         img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
         img =cv2.equalizeHist(img)
         img = cv2.medianBlur(img,7)
-        cv2.imshow("bright",img)
+        # cv2.imshow("bright",img)
         return cv2.merge((img,img,img))
         
     def ratioCheck(self,img):
