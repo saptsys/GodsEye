@@ -10,7 +10,7 @@ class PlateOCR():
         self.plate_regex = re.compile(r'^[A-Z]{2}[0-9]{1,2}(?:[A-Z])?(?:[A-Z]*)?[0-9]{4}$')
         self.all_states = ['AP', 'AR', 'AS', 'BR', 'CG', 'GA', 'GJ', 'HR', 'HP', 'JK', 'JH', 'KA', 'KL', 'MP', 'MH', 'MN', 'ML', 'MZ', 'NL', 'OR', 'PB', 'RJ', 'SK', 'TN', 'TR', 'UK', 'UP', 'WB', 'TS', 'AN', 'CH', 'DH', 'DD', 'DL', 'LD', 'PY']
         self.inc = 0
-        self.yolo = Yolo(confThreshold=0.75,nmsThreshold=0.8,inpWidth=200,inpHeight=200,detectType="ocr")
+        self.yolo = Yolo(confThreshold=0,nmsThreshold=0,inpWidth=200,inpHeight=200,detectType="ocr")
         self.yolo.ConfModel(coco="./data/yolo/ocr/ocr.names",cfg="./data/yolo/ocr/ocr.cfg",weights="./data/yolo/ocr/ocr.weights")
 
     def detect(self,img):
@@ -53,41 +53,47 @@ class PlateOCR():
             kernel = np.ones((3,3),np.uint8)
             img = cv2.dilate(img,kernel,iterations=1)
             # gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-            edges = cv2.Canny(img,50,150,apertureSize = 3)
-            lines = cv2.HoughLines(edges,1,np.pi/180,200)
-            if(lines is not None):
-                for rho,theta in lines[0]:
-                    a = np.cos(theta)
-                    b = np.sin(theta)
-                    x0 = a*rho
-                    y0 = b*rho
-                    x1 = int(x0 + 1000*(-b))
-                    y1 = int(y0 + 1000*(a))
-                    x2 = int(x0 - 1000*(-b))
-                    y2 = int(y0 - 1000*(a))
+            
+            self.rotate(img.copy())
 
-                    # print("a {0},b {1},x0 {2},y0 {3}".format(str(a),str(b),str(x0),str(y0)))
-                    angle = math.degrees(math.atan2(y2 - y1, x2 - x1))
-                    print("Angle > "+str(angle)," Theta > "+str(theta))
-
-                    
-                    rows,cols = img.shape[:2]
-                    cv2.line(img,(x1,y1),(x2,y2),(0,0,255),2)
-                    cv2.imshow('before-rotated',img)
-                    M = cv2.getRotationMatrix2D((cols/2,rows/2),angle,1)
-                    img = cv2.warpAffine(img,M,(cols,rows))
-                    #y = mx+b
-                    # print("slop: "+str((y2-y1)/(x2-x1))+"  theta:"+str(theta))
-                    cv2.imshow('rotated',img)
-
-            # cv2.imshow("noisy",img)  
+            cv2.imshow("noisy",img)  
             
             img = self.removeNoise(img,thickness=5,rangePercentage=0.2,medianThreshold=255)
-            # cv2.imshow('post-proces',img)
+            cv2.imshow('post-proces',img)
             return True,img
         else:
             print("Ratio not matched")
             return False,img
+
+    def rotate(self,img):
+        edges = cv2.Canny(img,50,150,apertureSize = 3)
+        lines = cv2.HoughLines(edges,1,np.pi/180,200)
+        if(lines is not None):
+            angles = []
+            for rho,theta in lines[0]:
+                a = np.cos(theta)
+                b = np.sin(theta)
+                x0 = a*rho
+                y0 = b*rho
+                x1 = int(x0 + 1000*(-b))
+                y1 = int(y0 + 1000*(a))
+                x2 = int(x0 - 1000*(-b))
+                y2 = int(y0 - 1000*(a))
+                # print("a {0},b {1},x0 {2},y0 {3}".format(str(a),str(b),str(x0),str(y0)))
+                angle = math.degrees(math.atan2(y2 - y1, x2 - x1))
+                angles.append(angle)
+            angle = np.mean(angles)
+            # print("Angle > "+str(angle)," Theta > "+str(theta))
+            
+            rows,cols = img.shape[:2]
+            # cv2.line(img,(x1,y1),(x2,y2),(0,0,255),2)
+            # cv2.imshow('before-rotated',img)
+            M = cv2.getRotationMatrix2D((cols/2,rows/2),angle,1)
+            img = cv2.warpAffine(img,M,(cols,rows))
+            #y = mx+b
+            # print("slop: "+str((y2-y1)/(x2-x1))+"  theta:"+str(theta))
+            # cv2.imshow('rotated',img)
+            return img
 
     def removeNoise(self,img,thickness=5,rangePercentage=0.2,medianThreshold=255):
         img = self.gray(img)
@@ -138,7 +144,7 @@ class PlateOCR():
     def bright(self,img):
         img = self.gray(img)
         img = cv2.equalizeHist(img)
-        img = cv2.medianBlur(img,7)
+        img = cv2.medianBlur(img,5)
         # cv2.imshow("bright",img)
         return self.gray(img,True)
         
