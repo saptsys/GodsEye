@@ -64,10 +64,10 @@ class CarDetect():
     # def cleanImage
 
     def plateOCR(self,frame,plates):
+        plts = []
         for x,y,h,w in plates:
             plate = frame[y:w,x:h]
             cords,pred,status = self.ocr.detect(plate)
             if(status):
-                # print(pred)
-                pass
-        pass
+                plts.append([pred,plate])
+        return plts

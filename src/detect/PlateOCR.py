@@ -11,7 +11,7 @@ class PlateOCR():
         self.plate_regex = re.compile(r'^[A-Z]{2}[0-9]{1,2}(?:[A-Z])?(?:[A-Z]*)?[0-9]{4}$')
         self.all_states = ['AP', 'AR', 'AS', 'BR', 'CG', 'GA', 'GJ', 'HR', 'HP', 'JK', 'JH', 'KA', 'KL', 'MP', 'MH', 'MN', 'ML', 'MZ', 'NL', 'OR', 'PB', 'RJ', 'SK', 'TN', 'TR', 'UK', 'UP', 'WB', 'TS', 'AN', 'CH', 'DH', 'DD', 'DL', 'LD', 'PY']
         self.inc = 0
-        self.yolo = Yolo(confThreshold=0.75,nmsThreshold=0.8,inpWidth=200,inpHeight=200,detectType="ocr")
+        self.yolo = Yolo(confThreshold=0.75,nmsThreshold=0.5,inpWidth=200,inpHeight=200,detectType="ocr")
         self.yolo.ConfModel(coco="./data/yolo/ocr/ocr.names",cfg="./data/yolo/ocr/ocr.cfg",weights="./data/yolo/ocr/ocr.weights")
 
     def detect(self,img):
@@ -31,9 +31,10 @@ class PlateOCR():
                 for i,at in enumerate(labelOrder):
     	            tempLabel[i] = label[at]
                 label = ''.join(map(str,tempLabel))
-                print(str(self.isValid(label))+"  "+label+"  accuracy: "+ str(sum(conf)/10))
+                isvalid = self.isValid(label)
+                print(str(isvalid)+"  "+label+"  accuracy: "+ str(sum(conf)/10))
                 # cv2.waitKey()
-                return cords,label,True
+                return cords,label,isvalid
             else:
                 # print("<10")
                 # cv2.imwrite("./data/img/detected/"+str(self.inc)+".jpg",img)
@@ -52,22 +53,22 @@ class PlateOCR():
             img = self.scale_frame(img,500)
             img = self.bright(img)
 
-            # gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+            # # gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
             
             img = self.rotate(img)
 
             # cv2.imshow("noisy",img)  
-            # img = self.removeNoise(img,thickness=8,rangePercentage=1,medianThreshold=50)
+            img = self.removeNoise(img,thickness=8,rangePercentage=1,medianThreshold=50)
 
 
-            # contours, hierarchy = cv2.findContours(self.gray(cv2.bitwise_not(img)),cv2.RETR_EXTERNAL ,cv2.CHAIN_APPROX_SIMPLE)
-            # cv2.drawContours(img,contours,-1,(0,255,0),3)
-            # mask = np.ones(img.shape[:2], dtype="uint8") * 255
-            # for c in contours:
-            #     if self.is_contour_bad(c):
-            #         cv2.drawContours(mask, [c], -1, 0, -1)
-            # img = cv2.bitwise_and(img, img, mask=mask)
-            # cv2.imshow("Mask", mask)
+            contours, hierarchy = cv2.findContours(self.gray(cv2.bitwise_not(img)),cv2.RETR_EXTERNAL ,cv2.CHAIN_APPROX_SIMPLE)
+            cv2.drawContours(img,contours,-1,(0,255,0),3)
+            mask = np.ones(img.shape[:2], dtype="uint8") * 255
+            for c in contours:
+                if self.is_contour_bad(c):
+                    cv2.drawContours(mask, [c], -1, 0, -1)
+            img = cv2.bitwise_and(img, img, mask=mask)
+            cv2.imshow("Mask", mask)
 
             cv2.imshow('post-proces',img)
             return True,img
@@ -126,7 +127,7 @@ class PlateOCR():
 
     def scale_frame(self,frame,scale_percent):
         _,frame = cv2.threshold(frame,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-        frame = cv2.adaptiveThreshold(frame,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,7,2)
+        # frame = cv2.adaptiveThreshold(frame,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,7,2)
 
         width = int(frame.shape[1] * scale_percent / 100)
         height = int(frame.shape[0] * scale_percent / 100)

@@ -1,10 +1,12 @@
 import time
 from pathlib import Path
 from regionSelector import RegionSelector
+from database import Database
 
 import cv2
 import imutils
 import numpy as np
+import sqlite3
 
 # from detect.bikeDetect import BikeDetect
 from detect.carDetect import CarDetect
@@ -18,6 +20,7 @@ class App():
         # self.bikeDetect = BikeDetect()
         self.camera = cv2.VideoCapture(camera)
         self.winName = 'GodsEye'
+        self.database = Database("data/GodsEye.db")
         self.__regionSelector = RegionSelector(self.camera.read()[1],self.winName)
         cv2.namedWindow(self.winName, cv2.WINDOW_NORMAL)
                 
@@ -36,7 +39,8 @@ class App():
 
             plateCords = self.carDetect.detectNumberPlate(roi,frame)
             
-            self.carDetect.plateOCR(frame,plateCords)
+            plts = self.carDetect.plateOCR(frame,plateCords)
+            self.database.insertPlates(plts)
             self.carDetect.drawCords(frame,plateCords)
 
             frame = cv2.putText(roi,str(str(fps)+" fps"),(10,30),cv2.FONT_ITALIC,0.5,(255,255,0),1)
@@ -52,7 +56,6 @@ class App():
 
         cv2.destroyAllWindows()
         self.camera.release()
-
 
     def __del__(self):
         pass
