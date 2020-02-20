@@ -60,15 +60,25 @@ class PlateOCR():
             # cv2.imshow("noisy",img)  
             img = self.removeNoise(img,thickness=8,rangePercentage=1,medianThreshold=50)
 
-
-            contours, hierarchy = cv2.findContours(self.gray(cv2.bitwise_not(img)),cv2.RETR_EXTERNAL ,cv2.CHAIN_APPROX_SIMPLE)
-            cv2.drawContours(img,contours,-1,(0,255,0),3)
-            mask = np.ones(img.shape[:2], dtype="uint8") * 255
-            for c in contours:
-                if self.is_contour_bad(c):
-                    cv2.drawContours(mask, [c], -1, 0, -1)
-            img = cv2.bitwise_and(img, img, mask=mask)
-            cv2.imshow("Mask", mask)
+            # contours, hierarchy = cv2.findContours(self.gray(cv2.bitwise_not(img)),cv2.RETR_EXTERNAL ,cv2.CHAIN_APPROX_SIMPLE)
+            # # cv2.drawContours(img,contours,-1,(0,255,0),3)
+            # # mask = np.ones(img.shape[:2], dtype="uint8") * 255
+            # dy = 0
+            # dh = 0
+            # for c in contours:
+            #     x,y,w,h = cv2.boundingRect(c)
+            #     if h>w and h>50 and w>25:
+            #         if y>dy:
+            #             dy = y
+            #         if h>dh:
+            #             dh = h
+            #         img = cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),2)
+            # img[:(dy-15),:] = 255
+            # img[(dy+dh):,:] = 255
+            # #     if self.is_contour_bad(c):
+            # #         cv2.drawContours(mask, [c], -1, 0, -1)
+            # # img = cv2.bitwise_and(img, img, mask=mask)
+            # # cv2.imshow("Mask", mask)
 
             cv2.imshow('post-proces',img)
             return True,img
