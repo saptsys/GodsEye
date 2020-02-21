@@ -80,7 +80,7 @@ class PlateOCR():
             # # img = cv2.bitwise_and(img, img, mask=mask)
             # # cv2.imshow("Mask", mask)
 
-            cv2.imshow('post-proces',img)
+            # cv2.imshow('post-proces',img)
             return True,img
         else:
             print("Ratio not matched")
