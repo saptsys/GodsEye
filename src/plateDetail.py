@@ -140,5 +140,8 @@ def findOwner(data = None):
 	#MARK: Result Table not appending to the response data
 	#Fix Needed
 
+if __name__ == "__main__":
+	findOwner(None)
+
 
 
