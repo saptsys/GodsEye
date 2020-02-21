@@ -45,7 +45,7 @@ def findOwner(data = None):
 		number = data[0]
 		plate = data[1]
 
-	print(number+" : finding owner's details...")
+	print("PID:"+str(os.getpid())+" "+number+" : finding owner's details...")
 	#MARK: Get Request to get webpage elements like textFields, image, etc
 	r = s.get(url=app_url)
 	cookies = r.cookies
@@ -131,11 +131,12 @@ def findOwner(data = None):
 	# print(tsoup.prettify())
 	
 	time = datetime.datetime.now()
-	name = "{0}_{1}".format(number,time.strftime("%m%d%Y%H%M%S"))
+	# name = "{0}_{1}".format(number,time.strftime("%d%m%Y%H%M%S"))
+	name = "{0}".format(number)
 	with open("storage\\"+name+".html",'w') as file:
 		file.write(("<table border=1><tr><td colspan=2><img src='images/{0}.png' width=200/></td><td colspan=2>{1}</td></tr>".format(name,time)+tsoup.prettify()+"</table>"))
 		cv2.imwrite("storage\\images\\"+name+"."+"png",plate)
-		print(number+" : owner details saved in storage")
+		print("PID:"+str(os.getpid())+"   "+number+" : owner details saved in storage")
 	#MARK: Result Table not appending to the response data
 	#Fix Needed
 
