@@ -5,10 +5,12 @@ import numpy as np
 from bs4 import BeautifulSoup, SoupStrainer
 import datetime
 import os
-import time as t
 
 class CrawlData():
 	def __init__(self,tesseractPath="J:/Program Files/Tesseract-OCR/tesseract.exe"):
+
+			self.isDisabled = False
+
 			self.tesseractPath = tesseractPath
 			# create req session
 			self.session = requests.Session()
@@ -17,27 +19,33 @@ class CrawlData():
 			self.app_url = 'https://vahan.nic.in/nrservices/faces/user/searchstatus.xhtml'
 			self.captcha_image_url = 'https://vahan.nic.in/nrservices/cap_img.jsp'
 
-			# load site
-			site = self.session.get(url=self.app_url)
-			self.cookies = site.cookies
-			soup = BeautifulSoup(site.text, 'html.parser')
-			self.viewstate = soup.select('input[name="javax.faces.ViewState"]')[0]['value']
+			try:
+				# load site
+				site = self.session.get(url=self.app_url)
+				self.cookies = site.cookies
+				soup = BeautifulSoup(site.text, 'html.parser')
+				self.viewstate = soup.select('input[name="javax.faces.ViewState"]')[0]['value']
 
-			# get captcha
-			self.captcha = self.generateCaptcha()
-			# convert to np array from byte string
-		
-			self.button = soup.find("button",{"type": "submit"})
+				# get captcha
+				self.captcha = self.generateCaptcha()
+				# convert to np array from byte string
+			
+				self.button = soup.find("button",{"type": "submit"})
 
-			self.headers = {
-				"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:74.0) Gecko/20100101 Firefox/74.0",
-				"Accept": "application/xml, text/xml, */*; q=0.01",
-				"Accept-Language": "en-US,en;q=0.5",
-				"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-				"Faces-Request": "partial/ajax",
-				"X-Requested-With": "XMLHttpRequest"
-			}
-			print("Crawler initialized")
+				self.headers = {
+					"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:74.0) Gecko/20100101 Firefox/74.0",
+					"Accept": "application/xml, text/xml, */*; q=0.01",
+					"Accept-Language": "en-US,en;q=0.5",
+					"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+					"Faces-Request": "partial/ajax",
+					"X-Requested-With": "XMLHttpRequest"
+				}
+			except ConnectionError as ex:
+				self.isDisabled = True
+				print("check your internet connection, "+str(ex))
+			except Exception as ex:
+				self.isDisabled = True
+				print("Error in Crawler : "+str(ex))
 	
 	def generateCaptcha(self):
 		iresponse = self.session.get(self.captcha_image_url)
@@ -59,6 +67,8 @@ class CrawlData():
 		return final
 
 	def fetch(self,plates,recaptcha=True):
+		if self.isDisabled:
+			exit(1)
 		try:
 			number = ""
 			plate = np.zeros((10,10))
@@ -93,7 +103,6 @@ class CrawlData():
 			time = datetime.datetime.now()
 			# name = "{0}_{1}".format(number,time.strftime("%d-%m-%Y %H.%M.%S"))
 			name = number
-			t.sleep(5)
 			with open("storage\\"+name+".html",'w') as file:
 				file.write(("<table border=1><tr><td colspan=2><img src='images/{0}.png' width=200/></td><td colspan=2>{1}</td></tr>".format(name,time)+tsoup+"</table>"))
 				cv2.imwrite("storage\\images\\"+name+"."+"png",plate)
