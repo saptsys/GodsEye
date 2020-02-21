@@ -3,6 +3,9 @@ from pathlib import Path
 from regionSelector import RegionSelector
 from database import Database
 
+from multiprocessing import Process
+import sys, os, traceback, types
+
 import cv2
 import imutils
 import numpy as np
@@ -10,6 +13,7 @@ import sqlite3
 
 # from detect.bikeDetect import BikeDetect
 from detect.carDetect import CarDetect
+import plateDetail as plateFinder
 
 def nothing(x):
     pass
@@ -21,6 +25,9 @@ class App():
         self.camera = cv2.VideoCapture(camera)
         self.winName = 'GodsEye'
         self.database = Database("data/GodsEye.db")
+        if( not os.path.isdir(os.getcwd()+"\\storage")):
+            os.mkdir(os.getcwd()+"\\storage")
+            os.mkdir(os.getcwd()+"\\storage\\images")
         self.__regionSelector = RegionSelector(self.camera.read()[1],self.winName)
         cv2.namedWindow(self.winName, cv2.WINDOW_NORMAL)
                 
@@ -40,7 +47,11 @@ class App():
             plateCords = self.carDetect.detectNumberPlate(roi,frame)
             
             plts = self.carDetect.plateOCR(frame,plateCords)
-            self.database.insertPlates(plts)
+            # self.database.insertPlates(plts)
+            if len(plts) > 0:
+                plts[0][1] = frame
+                proc = Process(target=plateFinder.findOwner,args=(plts[0],))
+                proc.start()
             self.carDetect.drawCords(frame,plateCords)
 
             frame = cv2.putText(roi,str(str(fps)+" fps"),(10,30),cv2.FONT_ITALIC,0.5,(255,255,0),1)
