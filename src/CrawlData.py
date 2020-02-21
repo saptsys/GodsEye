@@ -85,8 +85,6 @@ class CrawlData():
 		if(tsoup == "" and recaptcha == True):
 			self.generateCaptcha()
 			return self.fetch(plates,False)
-		else:
-			print(tsoup)
 
 		time = datetime.datetime.now()
 		name = "{0}_{1}".format(number,time.strftime("%d%m%Y%H%M%S"))
