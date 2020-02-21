@@ -5,6 +5,7 @@ import numpy as np
 from bs4 import BeautifulSoup, SoupStrainer
 import datetime
 import os
+import time as t
 
 class CrawlData():
 	def __init__(self,tesseractPath="J:/Program Files/Tesseract-OCR/tesseract.exe"):
@@ -58,44 +59,49 @@ class CrawlData():
 		return final
 
 	def fetch(self,plates,recaptcha=True):
-		number = ""
-		plate = np.zeros((10,10))
-		if(len(plates) == 2):
-			number = plates[0]
-			plate = plates[1]
-		data = {
-			'javax.faces.partial.ajax':'true',
-			'javax.faces.source': self.button['id'],
-			'javax.faces.partial.execute':'@all',
-			'javax.faces.partial.render': 'rcDetailsPanel resultPanel userMessages capatcha txt_ALPHA_NUMERIC',
-			self.button['id']:self.button['id'],
-			'masterLayout':'masterLayout',
-			'regn_no1_exact': number,
-			'txt_ALPHA_NUMERIC': self.captcha,
-			'javax.faces.ViewState': self.viewstate,
-			'j_idt32':''
-		}
+		try:
+			number = ""
+			plate = np.zeros((10,10))
+			if(len(plates) == 2):
+				number = plates[0]
+				plate = plates[1]
+			data = {
+				'javax.faces.partial.ajax':'true',
+				'javax.faces.source': self.button['id'],
+				'javax.faces.partial.execute':'@all',
+				'javax.faces.partial.render': 'rcDetailsPanel resultPanel userMessages capatcha txt_ALPHA_NUMERIC',
+				self.button['id']:self.button['id'],
+				'masterLayout':'masterLayout',
+				'regn_no1_exact': number,
+				'txt_ALPHA_NUMERIC': self.captcha,
+				'javax.faces.ViewState': self.viewstate,
+				'j_idt32':''
+			}
 
-		postResponse = self.session.post(url=self.app_url, data=data, headers=self.headers, cookies=self.cookies)
-		rsoup = BeautifulSoup(postResponse.text, 'html.parser')
-		table = SoupStrainer('tr')
-		tsoup = BeautifulSoup(rsoup.get_text(), 'html.parser', parse_only=table).prettify()
+			postResponse = self.session.post(url=self.app_url, data=data, headers=self.headers, cookies=self.cookies)
+			rsoup = BeautifulSoup(postResponse.text, 'html.parser')
+			table = SoupStrainer('tr')
+			tsoup = BeautifulSoup(rsoup.get_text(), 'html.parser', parse_only=table).prettify()
 
-		if(tsoup == "" and recaptcha == True):
-			self.generateCaptcha()
-			self.fetch(plates,False)
-		else:
-    			if(tsoup == ""):
-    					tsoup = rsoup.get_text()
+			if(tsoup == "" and recaptcha == True):
+				self.generateCaptcha()
+				self.fetch(plates,False)
+			else:
+					if(tsoup == ""):
+							tsoup = rsoup.get_text()
 
-		time = datetime.datetime.now()
-		name = "{0}_{1}".format(number,time.strftime("%d-%m-%Y %H.%M.%S"))
-		with open("storage\\"+name+".html",'w') as file:
-			file.write(("<table border=1><tr><td colspan=2><img src='images/{0}.png' width=200/></td><td colspan=2>{1}</td></tr>".format(name,time)+tsoup+"</table>"))
-			cv2.imwrite("storage\\images\\"+name+"."+"png",plate)
-			print("PID:"+str(os.getpid())+"   "+number+" : owner details saved in storage")
-
-		return tsoup
+			time = datetime.datetime.now()
+			# name = "{0}_{1}".format(number,time.strftime("%d-%m-%Y %H.%M.%S"))
+			name = number
+			t.sleep(5)
+			with open("storage\\"+name+".html",'w') as file:
+				file.write(("<table border=1><tr><td colspan=2><img src='images/{0}.png' width=200/></td><td colspan=2>{1}</td></tr>".format(name,time)+tsoup+"</table>"))
+				cv2.imwrite("storage\\images\\"+name+"."+"png",plate)
+				print("* PID:"+str(os.getpid())+"   "+number+" : owner details saved in storage")
+			return tsoup
+		except Exception as ex:
+			print(ex)
+			exit(0)
 
 # crawlData = CrawlData()
 # crawlData.fetch(["GJ03AB0639",[]])

@@ -24,7 +24,7 @@ class App():
         self.camera = cv2.VideoCapture(camera)
         self.winName = 'GodsEye'
         self.database = Database("data/GodsEye.db")
-        self.crawlData = CrawlData("J:/Program Files/Tesseract-OCR/tesseract.exe")
+        self.crawlData = CrawlData("C:/Program Files/Tesseract-OCR/tesseract.exe")
         if( not os.path.isdir(os.getcwd()+"\\storage")):
             os.mkdir(os.getcwd()+"\\storage")
             os.mkdir(os.getcwd()+"\\storage\\images")
@@ -32,6 +32,7 @@ class App():
         cv2.namedWindow(self.winName, cv2.WINDOW_NORMAL)
                 
     def run(self):
+        processes = []
         self.__regionSelector.select_region()
         fps = 0
         #run
@@ -51,6 +52,7 @@ class App():
             if len(plts) > 0:
                 plts[0][1] = frame
                 proc = Process(target=self.crawlData.fetch,args=(plts[0],))
+                processes.append(proc)
                 proc.start()
             self.carDetect.drawCords(frame,plateCords)
 
@@ -65,6 +67,17 @@ class App():
 
             fps = int(1.0 / (time.time() - start_time))
 
+        n = len(processes)
+        for proc in processes:
+            frame = cv2.putText(np.zeros((50,500,3))," Please wait, Let us finish all crawling processes("+str(n)+")",(10,30),cv2.FONT_ITALIC,0.5,(255,255,255),1)
+            cv2.imshow('GodsEye',frame)
+            cv2.waitKey(1)
+            n-=1   
+            proc.join()
+
+        frame = cv2.putText(np.zeros((50,500,3)),"Thank You, Good Bye",(10,30),cv2.FONT_ITALIC,0.5,(255,255,255),1)
+        cv2.imshow('GodsEye',frame)  
+        cv2.waitKey(3000)
         cv2.destroyAllWindows()
         self.camera.release()
 
