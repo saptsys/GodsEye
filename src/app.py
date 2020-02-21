@@ -2,7 +2,7 @@ import time
 from pathlib import Path
 from regionSelector import RegionSelector
 from database import Database
-
+from CrawlData import CrawlData
 from multiprocessing import Process
 import sys, os, traceback, types
 
@@ -13,7 +13,6 @@ import sqlite3
 
 # from detect.bikeDetect import BikeDetect
 from detect.carDetect import CarDetect
-import plateDetail as plateFinder
 
 def nothing(x):
     pass
@@ -25,6 +24,7 @@ class App():
         self.camera = cv2.VideoCapture(camera)
         self.winName = 'GodsEye'
         self.database = Database("data/GodsEye.db")
+        self.crawlData = CrawlData("J:/Program Files/Tesseract-OCR/tesseract.exe")
         if( not os.path.isdir(os.getcwd()+"\\storage")):
             os.mkdir(os.getcwd()+"\\storage")
             os.mkdir(os.getcwd()+"\\storage\\images")
@@ -50,7 +50,7 @@ class App():
             # self.database.insertPlates(plts)
             if len(plts) > 0:
                 plts[0][1] = frame
-                proc = Process(target=plateFinder.findOwner,args=(plts[0],))
+                proc = Process(target=self.crawlData.fetch,args=(plts[0],))
                 proc.start()
             self.carDetect.drawCords(frame,plateCords)
 
