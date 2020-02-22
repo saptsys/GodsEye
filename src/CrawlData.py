@@ -8,8 +8,7 @@ import os
 
 class CrawlData():
 	def __init__(self,tesseractPath="J:/Program Files/Tesseract-OCR/tesseract.exe"):
-			pytesseract.pytesseract.tesseract_cmd = tesseractPath
-
+			self.tesseractPath = tesseractPath
 			# create req session
 			self.session = requests.Session()
 			
@@ -46,8 +45,9 @@ class CrawlData():
 		return self.captcha
 
 	def resolve(self,img):
-		enhancedImage = self.enhance(img)
-		return pytesseract.image_to_string(enhancedImage)
+			pytesseract.pytesseract.tesseract_cmd = self.tesseractPath
+			enhancedImage = self.enhance(img)
+			return pytesseract.image_to_string(enhancedImage)
 
 	def enhance(self,img):
 		kernel = np.ones((2,2), np.uint8)
@@ -81,15 +81,15 @@ class CrawlData():
 		table = SoupStrainer('tr')
 		tsoup = BeautifulSoup(rsoup.get_text(), 'html.parser', parse_only=table).prettify()
 
-
 		if(tsoup == "" and recaptcha == True):
 			self.generateCaptcha()
-			return self.fetch(plates,False)
+			self.fetch(plates,False)
 		else:
-			print(tsoup)
+    			if(tsoup == ""):
+    					tsoup = rsoup.get_text()
 
 		time = datetime.datetime.now()
-		name = "{0}_{1}".format(number,time.strftime("%d%m%Y%H%M%S"))
+		name = "{0}_{1}".format(number,time.strftime("%d-%m-%Y %H.%M.%S"))
 		with open("storage\\"+name+".html",'w') as file:
 			file.write(("<table border=1><tr><td colspan=2><img src='images/{0}.png' width=200/></td><td colspan=2>{1}</td></tr>".format(name,time)+tsoup+"</table>"))
 			cv2.imwrite("storage\\images\\"+name+"."+"png",plate)
