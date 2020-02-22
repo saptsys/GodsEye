@@ -32,7 +32,8 @@ class PlateOCR():
     	            tempLabel[i] = label[at]
                 label = ''.join(map(str,tempLabel))
                 isvalid = self.isValid(label)
-                print(str(isvalid)+"  "+label+"  accuracy: "+ str(sum(conf)/10))
+                print('=> '+str(isvalid)+"  "+label+"  accuracy: "+ str(int(sum(conf)/10*100))+' %')
+
                 # cv2.waitKey()
                 return cords,label,isvalid
             else:

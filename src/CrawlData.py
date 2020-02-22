@@ -8,6 +8,9 @@ import os
 
 class CrawlData():
 	def __init__(self,tesseractPath="J:/Program Files/Tesseract-OCR/tesseract.exe"):
+
+			self.isDisabled = False
+
 			self.tesseractPath = tesseractPath
 			# create req session
 			self.session = requests.Session()
@@ -16,27 +19,33 @@ class CrawlData():
 			self.app_url = 'https://vahan.nic.in/nrservices/faces/user/searchstatus.xhtml'
 			self.captcha_image_url = 'https://vahan.nic.in/nrservices/cap_img.jsp'
 
-			# load site
-			site = self.session.get(url=self.app_url)
-			self.cookies = site.cookies
-			soup = BeautifulSoup(site.text, 'html.parser')
-			self.viewstate = soup.select('input[name="javax.faces.ViewState"]')[0]['value']
+			try:
+				# load site
+				site = self.session.get(url=self.app_url)
+				self.cookies = site.cookies
+				soup = BeautifulSoup(site.text, 'html.parser')
+				self.viewstate = soup.select('input[name="javax.faces.ViewState"]')[0]['value']
 
-			# get captcha
-			self.captcha = self.generateCaptcha()
-			# convert to np array from byte string
-		
-			self.button = soup.find("button",{"type": "submit"})
+				# get captcha
+				self.captcha = self.generateCaptcha()
+				# convert to np array from byte string
+			
+				self.button = soup.find("button",{"type": "submit"})
 
-			self.headers = {
-				"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:74.0) Gecko/20100101 Firefox/74.0",
-				"Accept": "application/xml, text/xml, */*; q=0.01",
-				"Accept-Language": "en-US,en;q=0.5",
-				"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-				"Faces-Request": "partial/ajax",
-				"X-Requested-With": "XMLHttpRequest"
-			}
-			print("Crawler initialized")
+				self.headers = {
+					"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:74.0) Gecko/20100101 Firefox/74.0",
+					"Accept": "application/xml, text/xml, */*; q=0.01",
+					"Accept-Language": "en-US,en;q=0.5",
+					"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+					"Faces-Request": "partial/ajax",
+					"X-Requested-With": "XMLHttpRequest"
+				}
+			except ConnectionError as ex:
+				self.isDisabled = True
+				print("check your internet connection, "+str(ex))
+			except Exception as ex:
+				self.isDisabled = True
+				print("Error in Crawler : "+str(ex))
 	
 	def generateCaptcha(self):
 		iresponse = self.session.get(self.captcha_image_url)
@@ -58,44 +67,50 @@ class CrawlData():
 		return final
 
 	def fetch(self,plates,recaptcha=True):
-		number = ""
-		plate = np.zeros((10,10))
-		if(len(plates) == 2):
-			number = plates[0]
-			plate = plates[1]
-		data = {
-			'javax.faces.partial.ajax':'true',
-			'javax.faces.source': self.button['id'],
-			'javax.faces.partial.execute':'@all',
-			'javax.faces.partial.render': 'rcDetailsPanel resultPanel userMessages capatcha txt_ALPHA_NUMERIC',
-			self.button['id']:self.button['id'],
-			'masterLayout':'masterLayout',
-			'regn_no1_exact': number,
-			'txt_ALPHA_NUMERIC': self.captcha,
-			'javax.faces.ViewState': self.viewstate,
-			'j_idt32':''
-		}
+		if self.isDisabled:
+			exit(1)
+		try:
+			number = ""
+			plate = np.zeros((10,10))
+			if(len(plates) == 2):
+				number = plates[0]
+				plate = plates[1]
+			data = {
+				'javax.faces.partial.ajax':'true',
+				'javax.faces.source': self.button['id'],
+				'javax.faces.partial.execute':'@all',
+				'javax.faces.partial.render': 'rcDetailsPanel resultPanel userMessages capatcha txt_ALPHA_NUMERIC',
+				self.button['id']:self.button['id'],
+				'masterLayout':'masterLayout',
+				'regn_no1_exact': number,
+				'txt_ALPHA_NUMERIC': self.captcha,
+				'javax.faces.ViewState': self.viewstate,
+				'j_idt32':''
+			}
 
-		postResponse = self.session.post(url=self.app_url, data=data, headers=self.headers, cookies=self.cookies)
-		rsoup = BeautifulSoup(postResponse.text, 'html.parser')
-		table = SoupStrainer('tr')
-		tsoup = BeautifulSoup(rsoup.get_text(), 'html.parser', parse_only=table).prettify()
+			postResponse = self.session.post(url=self.app_url, data=data, headers=self.headers, cookies=self.cookies)
+			rsoup = BeautifulSoup(postResponse.text, 'html.parser')
+			table = SoupStrainer('tr')
+			tsoup = BeautifulSoup(rsoup.get_text(), 'html.parser', parse_only=table).prettify()
 
-		if(tsoup == "" and recaptcha == True):
-			self.generateCaptcha()
-			self.fetch(plates,False)
-		else:
-    			if(tsoup == ""):
-    					tsoup = rsoup.get_text()
+			if(tsoup == "" and recaptcha == True):
+				self.generateCaptcha()
+				self.fetch(plates,False)
+			else:
+					if(tsoup == ""):
+							tsoup = rsoup.get_text()
 
-		time = datetime.datetime.now()
-		name = "{0}_{1}".format(number,time.strftime("%d-%m-%Y %H.%M.%S"))
-		with open("storage\\"+name+".html",'w') as file:
-			file.write(("<table border=1><tr><td colspan=2><img src='images/{0}.png' width=200/></td><td colspan=2>{1}</td></tr>".format(name,time)+tsoup+"</table>"))
-			cv2.imwrite("storage\\images\\"+name+"."+"png",plate)
-			print("PID:"+str(os.getpid())+"   "+number+" : owner details saved in storage")
-
-		return tsoup
+			time = datetime.datetime.now()
+			# name = "{0}_{1}".format(number,time.strftime("%d-%m-%Y %H.%M.%S"))
+			name = number
+			with open("storage\\"+name+".html",'w') as file:
+				file.write(("<table border=1><tr><td colspan=2><img src='images/{0}.png' width=200/></td><td colspan=2>{1}</td></tr>".format(name,time)+tsoup+"</table>"))
+				cv2.imwrite("storage\\images\\"+name+"."+"png",plate)
+				print("* PID:"+str(os.getpid())+"   "+number+" : owner details saved in storage")
+			return tsoup
+		except Exception as ex:
+			print("Error PID {0} : {1}".format(os.getpid(),ex))
+			exit(0)
 
 # crawlData = CrawlData()
 # crawlData.fetch(["GJ03AB0639",[]])
