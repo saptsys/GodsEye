@@ -25,7 +25,7 @@ class App():
         print(settings['source'])
         self.camera = cv2.VideoCapture(settings['source'])
         self.winName = settings['windowName']
-        self.database = Database(settings['dataBase'])
+        # self.database = Database(settings['dataBase'])
         self.crawlData = CrawlData(settings)
 
         if( not os.path.isdir(settings["storage"])):
