@@ -113,7 +113,7 @@ class CrawlData():
 				print("* PID:"+str(os.getpid())+"   "+number+" : owner details saved in storage")
 			return tsoup
 		except Exception as ex:
-			print("Error PID {0} : {1}".format(os.getpid(),ex))
+			print("Exception At PID {0} : {1}".format(os.getpid(),ex))
 			exit(0)
 
 # crawlData = CrawlData()
