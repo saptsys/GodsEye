@@ -18,16 +18,21 @@ def nothing(x):
     pass
 
 class App():
-    def __init__(self,camera=0):
+    def __init__(self,settings):
+        self.settings = settings
         self.carDetect = CarDetect()
         # self.bikeDetect = BikeDetect()
-        self.camera = cv2.VideoCapture(camera)
-        self.winName = 'GodsEye'
-        self.database = Database("data/GodsEye.db")
-        self.crawlData = CrawlData("C:/Program Files/Tesseract-OCR/tesseract.exe")
-        if( not os.path.isdir(os.getcwd()+"\\storage")):
-            os.mkdir(os.getcwd()+"\\storage")
-            os.mkdir(os.getcwd()+"\\storage\\images")
+        print(settings['source'])
+        self.camera = cv2.VideoCapture(settings['source'])
+        self.winName = settings['windowName']
+        self.database = Database(settings['dataBase'])
+        self.crawlData = CrawlData(settings)
+
+        if( not os.path.isdir(settings["storage"])):
+            os.mkdir(settings["storage"])
+        if( not os.path.isdir(settings["storage"]+"\\images")):
+            os.mkdir(settings["storage"]+"\\images")
+
         self.__regionSelector = RegionSelector(self.camera.read()[1],self.winName)
         cv2.namedWindow(self.winName, cv2.WINDOW_NORMAL)
                 

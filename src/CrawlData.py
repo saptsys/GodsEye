@@ -7,11 +7,13 @@ import datetime
 import os
 
 class CrawlData():
-	def __init__(self,tesseractPath="J:/Program Files/Tesseract-OCR/tesseract.exe"):
+	def __init__(self,settings):
+
+			self.settings = settings
 
 			self.isDisabled = False
 
-			self.tesseractPath = tesseractPath
+			self.tesseractPath = settings['tesseract']
 			# create req session
 			self.session = requests.Session()
 			
@@ -103,9 +105,11 @@ class CrawlData():
 			time = datetime.datetime.now()
 			# name = "{0}_{1}".format(number,time.strftime("%d-%m-%Y %H.%M.%S"))
 			name = number
-			with open("storage\\"+name+".html",'w') as file:
+			filepath = "{0}\\{1}.html".format(self.settings['storage'],name)
+			imagepath = "{0}\\images\\{1}.png".format(self.settings['storage'],name)
+			with open(filepath,'w') as file:
 				file.write(("<table border=1><tr><td colspan=2><img src='images/{0}.png' width=200/></td><td colspan=2>{1}</td></tr>".format(name,time)+tsoup+"</table>"))
-				cv2.imwrite("storage\\images\\"+name+"."+"png",plate)
+				cv2.imwrite(imagepath,plate)
 				print("* PID:"+str(os.getpid())+"   "+number+" : owner details saved in storage")
 			return tsoup
 		except Exception as ex:
