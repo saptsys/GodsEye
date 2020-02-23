@@ -22,7 +22,6 @@ class App():
         self.settings = settings
         self.carDetect = CarDetect()
         # self.bikeDetect = BikeDetect()
-        print(settings['source'])
         self.camera = cv2.VideoCapture(settings['source'])
         self.winName = settings['windowName']
         # self.database = Database(settings['dataBase'])
