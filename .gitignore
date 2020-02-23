@@ -117,3 +117,4 @@ src/data/
 .vscode/launch.json
 src/storage
 settings.json
+GodsEye.db
