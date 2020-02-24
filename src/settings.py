@@ -38,7 +38,7 @@ class Settings(dict):
                         canUpdate = True
                         data[key] = value
             except json.decoder.JSONDecodeError as ex:
-                print("Settings are not proper formatted in 'settings' file.")
+                print("Settings are not proper formatted in 'settings.json' file.")
                 exit(0)
         
         if canUpdate:
