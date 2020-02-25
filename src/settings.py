@@ -25,6 +25,8 @@ class Settings(dict):
         
         if str(self["storage"]).strip() == "/":
             self["storage"] = os.getcwd()+"\\storage"
+        if str(self["dataBase"]).strip() == "":
+            self["dataBase"] = "GodsEye.db"
         
 
     def load(self,path):

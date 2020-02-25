@@ -7,11 +7,14 @@ import datetime
 import os
 import re
 import json
+from database import Database
+
 class CrawlData():
 	def __init__(self,settings):
 			self.settings = settings
 			self.isDisabled = False
 			self.tesseractPath = settings['tesseract']
+			self.database = Database(settings['dataBase'])
 			# create req session
 			self.session = requests.Session()
 			
@@ -74,12 +77,12 @@ class CrawlData():
 			except:
 				return ""
 
-	def writeData(self,jsonObj):
+	def writeData(self,jsonObj,img):
 			with open("storage/results.json", "r+") as file:
 				data = json.load(file)
 				data.append(jsonObj)
 				file.seek(0)
-				json.dump(data, file)
+				json.dump(data, file,indent=3)
 
 	def extractJson(self,content,soup):
 		jsonObj = {}
@@ -102,10 +105,10 @@ class CrawlData():
 				exit(1)
 			try:
 				number = ""
-				plate = np.zeros((10,10))
+				plate_img = np.zeros((10,10))
 				if(len(plates) == 2):
 					number = plates[0]
-					plate = plates[1]
+					plate_img = plates[1]
 				data = {
 					'javax.faces.partial.ajax':'true',
 					'javax.faces.source': self.button['id'],
@@ -127,7 +130,7 @@ class CrawlData():
 				# print(rsoup)
 				errmsg = self.cleanHTML(rsoup.find("div",{"id":"userMessages"}).text)
 				if(errmsg != ""):
-						print("Error : "+errmsg)
+						print("HTML Cleaning Error : "+errmsg)
 						if(recaptcha == True):
 								self.generateCaptcha()
 								return self.fetch(plates,False)
@@ -138,8 +141,8 @@ class CrawlData():
 				resultPanel = rsoup.find("div", {"id": "rcDetailsPanel"}).find_all('div', attrs={'class':'fit-width-content'})
 
 				jsonObj = self.extractJson(resultPanel,rsoup)
-				print(jsonObj)
-				self.writeData(jsonObj)
+				# self.writeData(jsonObj,plate_img)
+				self.database.insertPlates(number,jsonObj["Owner Name"],plate_img,json.dumps(jsonObj))
 				return json.dumps(jsonObj,indent=3)
 			except Exception as ex:
 				print("Exception At PID {0} : {1}".format(os.getpid(),ex))

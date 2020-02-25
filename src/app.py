@@ -1,7 +1,6 @@
 import time
 from pathlib import Path
 from regionSelector import RegionSelector
-from database import Database
 from CrawlData import CrawlData
 from multiprocessing import Process
 import sys, os, traceback, types
@@ -24,7 +23,6 @@ class App():
         # self.bikeDetect = BikeDetect()
         self.camera = cv2.VideoCapture(settings['source'])
         self.winName = settings['windowName']
-        # self.database = Database(settings['dataBase'])
         self.crawlData = CrawlData(settings)
 
         if( not os.path.isdir(settings["storage"])):
