@@ -5,9 +5,10 @@ import numpy as np
 from bs4 import BeautifulSoup, SoupStrainer
 import datetime
 import os
+import re
+import json
 class CrawlData():
 	def __init__(self,settings):
-
 			self.settings = settings
 			self.isDisabled = False
 			self.tesseractPath = settings['tesseract']
