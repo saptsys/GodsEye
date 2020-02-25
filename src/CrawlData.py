@@ -5,14 +5,11 @@ import numpy as np
 from bs4 import BeautifulSoup, SoupStrainer
 import datetime
 import os
-
 class CrawlData():
 	def __init__(self,settings):
 
 			self.settings = settings
-
 			self.isDisabled = False
-
 			self.tesseractPath = settings['tesseract']
 			# create req session
 			self.session = requests.Session()
@@ -56,9 +53,9 @@ class CrawlData():
 		return self.captcha
 
 	def resolve(self,img):
-			pytesseract.pytesseract.tesseract_cmd = self.tesseractPath
-			enhancedImage = self.enhance(img)
-			return pytesseract.image_to_string(enhancedImage)
+		pytesseract.pytesseract.tesseract_cmd = self.tesseractPath
+		enhancedImage = self.enhance(img)
+		return pytesseract.image_to_string(enhancedImage)
 
 	def enhance(self,img):
 		kernel = np.ones((2,2), np.uint8)
@@ -67,54 +64,85 @@ class CrawlData():
 		erosion_again = cv2.erode(img_dilation, kernel, iterations=1)
 		final = cv2.GaussianBlur(erosion_again, (1, 1), 0)
 		return final
+	
+	def cleanHTML(self,raw_html):
+			try:	
+				cleanr = re.compile('<.*?>')
+				cleantext = re.sub(cleanr, '', raw_html)
+				return cleantext
+			except:
+				return ""
+
+	def writeData(self,jsonObj):
+			with open("storage/results.json", "r+") as file:
+				data = json.load(file)
+				data.append(jsonObj)
+				file.seek(0)
+				json.dump(data, file)
+
+	def extractJson(self,content,soup):
+		jsonObj = {}
+		try:
+			jsonObj['Registering Authority'] =  self.cleanHTML( soup.find("div",{"class":"text-capitalize"}).text).split(":")[1].strip()
+			for i in range(0,len(content),2):
+				key = self.cleanHTML(content[i].text).replace(":","").strip()
+				value = self.cleanHTML(content[i+1].text).strip()
+				jsonObj[key] = value
+				jsonObj['isFound'] = True
+		except:
+			jsonObj['isFound'] = False
+		
+		timeStamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+		jsonObj['timestamp'] = timeStamp
+		return jsonObj
 
 	def fetch(self,plates,recaptcha=True):
-		if self.isDisabled:
-			exit(1)
-		try:
-			number = ""
-			plate = np.zeros((10,10))
-			if(len(plates) == 2):
-				number = plates[0]
-				plate = plates[1]
-			data = {
-				'javax.faces.partial.ajax':'true',
-				'javax.faces.source': self.button['id'],
-				'javax.faces.partial.execute':'@all',
-				'javax.faces.partial.render': 'rcDetailsPanel resultPanel userMessages capatcha txt_ALPHA_NUMERIC',
-				self.button['id']:self.button['id'],
-				'masterLayout':'masterLayout',
-				'regn_no1_exact': number,
-				'txt_ALPHA_NUMERIC': self.captcha,
-				'javax.faces.ViewState': self.viewstate,
-				'j_idt32':''
-			}
+			if self.isDisabled:
+				exit(1)
+			try:
+				number = ""
+				plate = np.zeros((10,10))
+				if(len(plates) == 2):
+					number = plates[0]
+					plate = plates[1]
+				data = {
+					'javax.faces.partial.ajax':'true',
+					'javax.faces.source': self.button['id'],
+					'javax.faces.partial.execute':'@all',
+					'javax.faces.partial.render': 'rcDetailsPanel resultPanel userMessages capatcha txt_ALPHA_NUMERIC',
+					self.button['id']:self.button['id'],
+					'masterLayout':'masterLayout',
+					'regn_no1_exact': number,
+					'txt_ALPHA_NUMERIC': self.captcha,
+					'javax.faces.ViewState': self.viewstate,
+					'j_idt32':''
+				}
+				postResponse = self.session.post(url=self.app_url, data=data, headers=self.headers, cookies=self.cookies)
+				rsoup = BeautifulSoup(postResponse.text, 'html.parser').text
 
-			postResponse = self.session.post(url=self.app_url, data=data, headers=self.headers, cookies=self.cookies)
-			rsoup = BeautifulSoup(postResponse.text, 'html.parser')
-			table = SoupStrainer('tr')
-			tsoup = BeautifulSoup(rsoup.get_text(), 'html.parser', parse_only=table).prettify()
+				rsoup = rsoup.replace("<![CDATA[","")
+				rsoup = rsoup.replace("]]>",">")
+				rsoup = BeautifulSoup(rsoup,'html.parser')
+				# print(rsoup)
+				errmsg = self.cleanHTML(rsoup.find("div",{"id":"userMessages"}).text)
+				if(errmsg != ""):
+						print("Error : "+errmsg)
+						if(recaptcha == True):
+								self.generateCaptcha()
+								return self.fetch(plates,False)
+						else:
+								print(self.captcha)
+								return
 
-			if(tsoup == "" and recaptcha == True):
-				self.generateCaptcha()
-				self.fetch(plates,False)
-			else:
-					if(tsoup == ""):
-							tsoup = rsoup.get_text()
+				resultPanel = rsoup.find("div", {"id": "rcDetailsPanel"}).find_all('div', attrs={'class':'fit-width-content'})
 
-			time = datetime.datetime.now()
-			# name = "{0}_{1}".format(number,time.strftime("%d-%m-%Y %H.%M.%S"))
-			name = number
-			filepath = "{0}\\{1}.html".format(self.settings['storage'],name)
-			imagepath = "{0}\\images\\{1}.png".format(self.settings['storage'],name)
-			with open(filepath,'w') as file:
-				file.write(("<table border=1><tr><td colspan=2><img src='images/{0}.png' width=200/></td><td colspan=2>{1}</td></tr>".format(name,time)+tsoup+"</table>"))
-				cv2.imwrite(imagepath,plate)
-				print("* PID:"+str(os.getpid())+"   "+number+" : owner details saved in storage")
-			return tsoup
-		except Exception as ex:
-			print("Exception At PID {0} : {1}".format(os.getpid(),ex))
-			exit(0)
+				jsonObj = self.extractJson(resultPanel,rsoup)
+				print(jsonObj)
+				self.writeData(jsonObj)
+				return json.dumps(jsonObj,indent=3)
+			except Exception as ex:
+				print("Exception At PID {0} : {1}".format(os.getpid(),ex))
+				exit(0)
 
-# crawlData = CrawlData()
-# crawlData.fetch(["GJ03AB0639",[]])
+# crawlData = CrawlData(set.Settings())
+# print(crawlData.fetch(["GJ14S9565",[]]))
