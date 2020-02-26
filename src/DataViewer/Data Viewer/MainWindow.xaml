@@ -1,0 +1,54 @@
+﻿<Window x:Class="Data_Viewer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Data_Viewer"
+        mc:Ignorable="d"
+        PreviewKeyDown="Window_PreviewKeyDown"
+        Title="God's Eye Viewer" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Height="450" Width="730">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <CheckBox Content="Show Only Unique Numbers" IsChecked="{Binding OnlyUnique}" Margin="1"/>
+            <DataGrid Grid.Row="1" BorderThickness="1 1 0 0" HeadersVisibility="Column" BorderBrush="#000" Name="mainGrid" IsReadOnly="True" SelectedIndex="0" Background="#fff" SelectionChanged="mainGrid_SelectionChanged" SelectionMode="Single" ItemsSource="{Binding Records,Mode=TwoWay}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="#" Binding="{Binding Id}" Width="auto"/>
+                    <DataGridTextColumn Header="Number" Binding="{Binding Number}" MinWidth="100"/>
+                    <DataGridTextColumn Header="Owner" Binding="{Binding Owner}" MinWidth="150"/>
+                    <!--<DataGridTemplateColumn Width="50" Header="Image">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Command="{Binding ImageShowCommand,RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}" CommandParameter="{Binding Id}">
+                                    SHOW
+                                </Button>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>-->
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+        <Grid Grid.Column="1" Background="#ddd">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="1.5*"/>
+            </Grid.RowDefinitions>
+
+            <Image Grid.Row="0" Source="{Binding Detail_Image}" Margin="3"/>
+            <DataGrid Foreground="#000" GridLinesVisibility="Horizontal" HorizontalScrollBarVisibility="Auto" RowBackground="#ddd" HeadersVisibility="None" Grid.Row="1" IsReadOnly="True" Name="detailGrid" ItemsSource="{Binding Detail_Records}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" Margin="0 3 3 3">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Detail" Binding="{Binding Key}" Width="auto" FontWeight="Bold"/>
+                    <DataGridTextColumn Header="Value" Binding="{Binding Value}" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+        </Grid>
+    </Grid>
+</Window>

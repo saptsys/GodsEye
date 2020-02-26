@@ -1,0 +1,20 @@
+E:\Libraries\Desktop\opencv\GodsEye\src\DataViewer\Data Viewer\bin\Release\Data Viewer.exe.config
+E:\Libraries\Desktop\opencv\GodsEye\src\DataViewer\Data Viewer\bin\Release\Data Viewer.exe
+E:\Libraries\Desktop\opencv\GodsEye\src\DataViewer\Data Viewer\bin\Release\Data Viewer.pdb
+E:\Libraries\Desktop\opencv\GodsEye\src\DataViewer\Data Viewer\bin\Release\Newtonsoft.Json.dll
+E:\Libraries\Desktop\opencv\GodsEye\src\DataViewer\Data Viewer\bin\Release\Newtonsoft.Json.xml
+E:\Libraries\Desktop\opencv\GodsEye\src\DataViewer\Data Viewer\obj\Release\Data Viewer.csprojAssemblyReference.cache
+E:\Libraries\Desktop\opencv\GodsEye\src\DataViewer\Data Viewer\obj\Release\MainWindow.g.cs
+E:\Libraries\Desktop\opencv\GodsEye\src\DataViewer\Data Viewer\obj\Release\App.g.cs
+E:\Libraries\Desktop\opencv\GodsEye\src\DataViewer\Data Viewer\obj\Release\Data Viewer_MarkupCompile.cache
+E:\Libraries\Desktop\opencv\GodsEye\src\DataViewer\Data Viewer\obj\Release\Data Viewer_MarkupCompile.lref
+E:\Libraries\Desktop\opencv\GodsEye\src\DataViewer\Data Viewer\obj\Release\MainWindow.baml
+E:\Libraries\Desktop\opencv\GodsEye\src\DataViewer\Data Viewer\obj\Release\Data Viewer.g.resources
+E:\Libraries\Desktop\opencv\GodsEye\src\DataViewer\Data Viewer\obj\Release\Data_Viewer.Properties.Resources.resources
+E:\Libraries\Desktop\opencv\GodsEye\src\DataViewer\Data Viewer\obj\Release\Data Viewer.csproj.GenerateResource.cache
+E:\Libraries\Desktop\opencv\GodsEye\src\DataViewer\Data Viewer\obj\Release\Data Viewer.csproj.CopyComplete
+E:\Libraries\Desktop\opencv\GodsEye\src\DataViewer\Data Viewer\obj\Release\Data Viewer.exe
+E:\Libraries\Desktop\opencv\GodsEye\src\DataViewer\Data Viewer\obj\Release\Data Viewer.pdb
+E:\Libraries\Desktop\opencv\GodsEye\src\DataViewer\Data Viewer\bin\Release\System.Data.SQLite.dll
+E:\Libraries\Desktop\opencv\GodsEye\src\DataViewer\Data Viewer\bin\Release\System.Data.SQLite.xml
+E:\Libraries\Desktop\opencv\GodsEye\src\DataViewer\Data Viewer\bin\Release\System.Data.SQLite.dll.config
