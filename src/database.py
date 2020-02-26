@@ -36,16 +36,18 @@ class Database:
     #     finally:
     #         con.close()
     
-    def insertPlates(self,number,owner,image,data):
+    def insertPlates(self,number,owner,image,data,trying=False):
         try:
             con = self.connection()
             _,enc = cv2.imencode(".jpg",image)
             cur = con.cursor()
-            cv2.imshow('insertig',image)
             cur.execute("INSERT INTO plates VALUES(?,?,?,?,?)",(None,number,owner,enc,data))
             con.commit()
+            print("* "+number+" : inserted into database")
         except Exception as ex:
-            print("Database-insertPlate Error : "+str(ex))
+            print("2nd-try-"+str(trying)+"  Database-insertPlate Error : "+str(ex))
+            if not trying:
+                self.insertPlates(number,owner,image,data,True)
         finally:
             con.close()
         

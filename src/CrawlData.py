@@ -92,12 +92,12 @@ class CrawlData():
 				key = self.cleanHTML(content[i].text).replace(":","").strip()
 				value = self.cleanHTML(content[i+1].text).strip()
 				jsonObj[key] = value
-				jsonObj['isFound'] = True
+				# jsonObj['isFound'] = True
 		except:
 			jsonObj['isFound'] = False
 		
 		timeStamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-		jsonObj['timestamp'] = timeStamp
+		jsonObj['Timestamp'] = timeStamp
 		return jsonObj
 
 	def fetch(self,plates,recaptcha=True):

@@ -4,6 +4,7 @@ from regionSelector import RegionSelector
 from CrawlData import CrawlData
 from multiprocessing import Process
 import sys, os, traceback, types
+import subprocess
 
 import cv2
 import imutils
@@ -38,7 +39,13 @@ class App():
         self.__regionSelector.select_region()
         fps = 0
         #run
-        while cv2.waitKey(1) != 27:
+        PressedKey = None
+        while PressedKey != 27:
+            
+            if(PressedKey == 22):
+                print("starting data viewer...")
+                print(str(os.startfile(os.getcwd()+'/DataViewer/Data Viewer/bin/Release/Data Viewer.exe')))
+
             start_time = time.time()
             hasFrame,frame = self.camera.read()
             orignal_frame = frame.copy()
@@ -68,6 +75,7 @@ class App():
                 break
 
             fps = int(1.0 / (time.time() - start_time))
+            PressedKey = cv2.waitKey(1)
 
         n = len(processes)
         for proc in processes:
