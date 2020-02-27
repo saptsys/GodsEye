@@ -4,7 +4,6 @@ from regionSelector import RegionSelector
 from CrawlData import CrawlData
 from multiprocessing import Process
 import sys, os, traceback, types
-import subprocess
 
 import cv2
 import imutils
@@ -43,7 +42,7 @@ class App():
         while PressedKey != 27:
             
             if(PressedKey == 22):
-                print("starting data viewer...")
+                print("Starting data viewer...")
                 print(str(os.startfile(os.getcwd()+'/DataViewer/Data Viewer/bin/Release/Data Viewer.exe')))
 
             start_time = time.time()

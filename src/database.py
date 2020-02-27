@@ -8,7 +8,8 @@ class Database:
             self.__path = path
             con = self.connection()
             cur = con.cursor()
-            cur.execute("pragma journal_mode=wal; CREATE TABLE IF NOT EXISTS plates( id INTEGER PRIMARY KEY AUTOINCREMENT, number nvarchar(10) NOT NULL, owner char(255), image BLOB,data json);")
+            cur.execute(" CREATE TABLE IF NOT EXISTS plates( id INTEGER PRIMARY KEY AUTOINCREMENT, number nvarchar(10) NOT NULL, owner char(255), image BLOB,data json);")
+            cur.execute("pragma journal_mode=wal;")
             con.commit()
         except Exception as ex:
             print("Database-ctor Error : "+str(ex))
